@@ -3,17 +3,17 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import Stats from 'three/addons/libs/stats.module.js'
 import { GUI } from 'dat.gui'
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+// import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-const objLoader = new OBJLoader();
-const textureLoader = new THREE.TextureLoader()
+// const objLoader = new OBJLoader();
+// const textureLoader = new THREE.TextureLoader()
 const loader = new GLTFLoader();
 
 let cacharro = new THREE.Group<THREE.Object3DEventMap>()
 let isLoaded = false
 
-loader.load('./models/cacharro.glb', function (gltf) {
+loader.load('./cacharro.glb', function (gltf) {
   console.log(gltf)
   cacharro = gltf.scene
   scene.add(cacharro);
@@ -75,15 +75,15 @@ cameraFolder.open()
 
 
 //ANIMATION LOOP
-const clock = new THREE.Clock()
-let delta
+// const clock = new THREE.Clock()
+// let delta = 0
 
 
 
 function animate() {
   requestAnimationFrame(animate)
 
-  delta = clock.getDelta()
+  // delta = clock.getDelta()
   if(isLoaded){
     let pos = new THREE.Vector3(cacharro.position.x, cacharro.position.y +1, cacharro.position.z)
     camera.lookAt(pos)
