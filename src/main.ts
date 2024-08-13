@@ -3,28 +3,18 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import Stats from 'three/addons/libs/stats.module.js'
 import { GUI } from 'dat.gui'
-// import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-
-// const objLoader = new OBJLoader();
-// const textureLoader = new THREE.TextureLoader()
-const loader = new GLTFLoader();
-
-let cacharro = new THREE.Group<THREE.Object3DEventMap>()
-let isLoaded = false
-
-loader.load('./cacharro.glb', function (gltf) {
-  console.log(gltf)
-  cacharro = gltf.scene
-  scene.add(cacharro);
-  isLoaded = true
-}, undefined, function (error) {
-  console.error(error);
-});
+import * as Loader from '../src/loader'
 
 //SCENE
 const scene = new THREE.Scene()
 scene.add(new THREE.AxesHelper(5))
+
+let cacharro = new THREE.Group<THREE.Object3DEventMap>()
+let mango = new THREE.Group<THREE.Object3DEventMap>()
+
+cacharro = await Loader.loadModel(scene,'cacharro')
+mango  = await Loader.loadModel(scene,'mango')
+
 
 //CAMERA
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
@@ -32,9 +22,7 @@ camera.position.x = 0.75
 camera.position.y = 2.1
 camera.position.z = 2.3
 
-if(isLoaded){
-  camera.lookAt(cacharro.position)
-}
+
 //RENDERER
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
@@ -84,9 +72,12 @@ function animate() {
   requestAnimationFrame(animate)
 
   // delta = clock.getDelta()
-  if(isLoaded){
+  if(cacharro){
     let pos = new THREE.Vector3(cacharro.position.x, cacharro.position.y +1, cacharro.position.z)
     camera.lookAt(pos)
+  }
+  if(mango){
+    // mango.rotation.z += 
   }
   renderer.render(scene, camera)
   stats.update()
