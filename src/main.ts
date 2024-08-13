@@ -14,7 +14,7 @@ let mango = new THREE.Group<THREE.Object3DEventMap>()
 
 cacharro = await Loader.loadModel(scene,'cacharro')
 mango  = await Loader.loadModel(scene,'mango')
-
+mango.position.y += 1.22293
 
 //CAMERA
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
@@ -63,21 +63,19 @@ cameraFolder.open()
 
 
 //ANIMATION LOOP
-// const clock = new THREE.Clock()
-// let delta = 0
-
-
+const clock = new THREE.Clock()
+let delta = 0
 
 function animate() {
   requestAnimationFrame(animate)
 
-  // delta = clock.getDelta()
+  delta = clock.getDelta()
   if(cacharro){
     let pos = new THREE.Vector3(cacharro.position.x, cacharro.position.y +1, cacharro.position.z)
     camera.lookAt(pos)
   }
   if(mango){
-    // mango.rotation.z += 
+    mango.rotation.z += delta
   }
   renderer.render(scene, camera)
   stats.update()
