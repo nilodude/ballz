@@ -1,6 +1,8 @@
 import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import { FlyControls } from 'three/addons/controls/FlyControls.js';
+import { DragControls } from 'three/addons/controls/DragControls.js';
 import Stats from 'three/addons/libs/stats.module.js'
 import { GUI } from 'dat.gui'
 import * as Loader from '../src/loader'
@@ -28,13 +30,17 @@ camera.position.x = 0.75
 camera.position.y = 1.3
 camera.position.z = 2.3
 
+if(cacharro){
+  let pos = new THREE.Vector3(cacharro.position.x, cacharro.position.y +1.2, cacharro.position.z)
+  camera.lookAt(pos)
+}
 
 //RENDERER
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
-new OrbitControls(camera, renderer.domElement)
+
 
 //STATS (FPS)
 const stats = new Stats()
@@ -55,7 +61,7 @@ scene.backgroundBlurriness = 0
 //LIGHTS
 const light1 = new THREE.DirectionalLight( 0xfff9d8, 3 );
 light1.position.z += 1000;
-light1.position.y += 100;
+light1.position.y += 300;
 scene.add(light1);
 const light2 = new THREE.DirectionalLight( 0xfff9d8, 1 );
 light2.position.z -= 3000;
@@ -71,6 +77,44 @@ cameraFolder.add(camera.position, 'y', 0, 20)
 cameraFolder.add(camera.position, 'z', 0, 20)
 cameraFolder.open()
 
+// new OrbitControls(camera, renderer.domElement)
+let controls = new FlyControls( camera, renderer.domElement );
+
+controls.movementSpeed = 1.3;
+controls.domElement = renderer.domElement;
+controls.rollSpeed = Math.PI / 24;
+controls.autoForward = false;
+controls.dragToLook = true;
+
+
+
+let mouseClicked = false
+let mouseMovement = {x: 0, y:0}
+document.addEventListener('mousedown',(event)=>{
+  // console.log(event.button)
+  mouseClicked = event.button === 0;  //left mouse
+})
+document.addEventListener('mousemove',(event)=>{
+  // console.log(event.movementX, event.movementY)
+  mouseMovement = {x:event.movementX, y:event.movementY}
+})
+document.addEventListener('mouseup',(event)=>{
+  // console.log(event.button)
+  mouseClicked = !(event.button === 0);  //left mouse
+})
+
+const dragControls = new DragControls( [mango], camera, renderer.domElement );
+dragControls.mode = 'rotate'
+dragControls.rotateSpeed = 0.5
+
+dragControls.addEventListener( 'drag', function ( event ) {
+	// console.log(event)
+  event.object.rotation.x = 0
+  event.object.rotation.y= 0
+  event.object.rotation.z -= (Math.abs(mouseMovement.x^2) + Math.abs(mouseMovement.y^2))/200
+  //need to detect if mouse is left or right to the rotation Z axis, and change the sign of each X, Y contribution
+});
+
 
 //ANIMATION LOOP
 const clock = new THREE.Clock()
@@ -81,12 +125,15 @@ function animate() {
 
   delta = clock.getDelta()
   if(cacharro){
-    let pos = new THREE.Vector3(cacharro.position.x, cacharro.position.y +1.2, cacharro.position.z)
+    let pos = new THREE.Vector3(cacharro.position.x, cacharro.position.y +1.3, cacharro.position.z)
     camera.lookAt(pos)
   }
-  if(mango){
-    mango.rotation.z += delta
-  }
+  
+    mango.rotation.x = 0
+    mango.rotation.y = 0
+    // mango.rotatiwon.z -= delta 
+  
+  controls.update( delta );
   renderer.render(scene, camera)
   stats.update()
 }
