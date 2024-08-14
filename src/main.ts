@@ -77,15 +77,18 @@ cameraFolder.add(camera.position, 'y', 0, 20)
 cameraFolder.add(camera.position, 'z', 0, 20)
 cameraFolder.open()
 
-// new OrbitControls(camera, renderer.domElement)
-let controls = new FlyControls( camera, renderer.domElement );
 
-controls.movementSpeed = 1.3;
-controls.domElement = renderer.domElement;
-controls.rollSpeed = Math.PI / 24;
-controls.autoForward = false;
-controls.dragToLook = true;
+//CONTROLS
+let orbitControls = new OrbitControls(camera, renderer.domElement)
+orbitControls.enableRotate = false
 
+let flyControls = new FlyControls( camera, renderer.domElement );
+
+flyControls.movementSpeed = 1.5;
+flyControls.domElement = renderer.domElement;
+flyControls.rollSpeed = Math.PI / 24;
+flyControls.autoForward = false;
+flyControls.dragToLook = true;
 
 
 let mouseClicked = false
@@ -129,11 +132,7 @@ function animate() {
     camera.lookAt(pos)
   }
   
-    mango.rotation.x = 0
-    mango.rotation.y = 0
-    // mango.rotatiwon.z -= delta 
-  
-  controls.update( delta );
+  flyControls.update( delta );
   renderer.render(scene, camera)
   stats.update()
 }
