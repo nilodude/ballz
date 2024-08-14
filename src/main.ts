@@ -90,20 +90,10 @@ flyControls.rollSpeed = Math.PI / 24;
 flyControls.autoForward = false;
 flyControls.dragToLook = true;
 
-
-let mouseClicked = false
 let mouseMovement = {x: 0, y:0}
-document.addEventListener('mousedown',(event)=>{
-  // console.log(event.button)
-  mouseClicked = event.button === 0;  //left mouse
-})
+
 document.addEventListener('mousemove',(event)=>{
-  // console.log(event.movementX, event.movementY)
   mouseMovement = {x:event.movementX, y:event.movementY}
-})
-document.addEventListener('mouseup',(event)=>{
-  // console.log(event.button)
-  mouseClicked = !(event.button === 0);  //left mouse
 })
 
 const dragControls = new DragControls( [mango], camera, renderer.domElement );
