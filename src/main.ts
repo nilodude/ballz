@@ -91,6 +91,36 @@ light2Folder.add(light2.position, 'x', -10000,10000)
 light2Folder.add(light2.position, 'y', -10000,10000)
 light2Folder.add(light2.position, 'z', -10000,10000)
 
+
+
+
+
+//CREATE WORLD OBJECTS
+//FLOOR
+const floorMaterial = new THREE.MeshPhongMaterial({
+  color: new THREE.Color(0xbabaca),
+  side: THREE.DoubleSide
+})
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(20,20), floorMaterial)
+floor.rotateX(-Math.PI/2)
+floor.receiveShadow = true
+scene.add(floor)
+
+//COIN
+const coinMaterial = new THREE.MeshPhongMaterial({
+  color: new THREE.Color(0xb38f00),
+  side: THREE.DoubleSide
+})
+const coinGeometry = new THREE.CylinderGeometry( 0.02, 0.02, 0.005, 16 ); 
+const coin = new THREE.Mesh(coinGeometry, coinMaterial)
+coin.castShadow = true
+coin.position.x = 0.5
+coin.position.y = 1
+coin.position.z = 0.5
+coin.rotateX(Math.PI/2)
+scene.add( coin );
+
+
 //CONTROLS
 let orbitControls = new OrbitControls(camera, renderer.domElement)
 orbitControls.enableRotate = false
@@ -102,34 +132,30 @@ flyControls.rollSpeed = Math.PI / 24;
 flyControls.autoForward = false;
 flyControls.dragToLook = true;
 
+
+//HANDLE CONTROLS
 let mouseMovement = {x: 0, y:0}
 
 document.addEventListener('mousemove',(event)=>{
   mouseMovement = {x:event.movementX, y:event.movementY}
 })
 
-const dragControls = new DragControls( [mango], camera, renderer.domElement );
-dragControls.mode = 'rotate'
-dragControls.rotateSpeed = 0.5
+const dragHandleControls = new DragControls( [mango], camera, renderer.domElement );
+dragHandleControls.mode = 'rotate'
+dragHandleControls.rotateSpeed = 0.5
 
-dragControls.addEventListener( 'drag', function ( event ) {
-	// console.log(event)
-  event.object.rotation.x = 0
-  event.object.rotation.y= 0
-  event.object.rotation.z -= (Math.abs(mouseMovement.x^2) + Math.abs(mouseMovement.y^2))/200
-  //need to detect if mouse is left or right to the rotation Z axis, and change the sign of each X, Y contribution
+dragHandleControls.addEventListener( 'drag', function ( event ) {
+	console.log(event)
+  if(event.object.name == 'mango'){
+    event.object.rotation.x = 0
+    event.object.rotation.y= 0
+    event.object.rotation.z -= (Math.abs(mouseMovement.x^2) + Math.abs(mouseMovement.y^2))/200
+    //need to detect if mouse is left or right to the rotation Z axis, and change the sign of each X, Y contribution
+  }
 });
 
-//CREATE WORLD OBJECTS
-const floorMaterial = new THREE.MeshPhongMaterial({
-  color: new THREE.Color(0xbabaca),
-  shadowSide: THREE.FrontSide,
-  side: THREE.FrontSide
-})
-const floor = new THREE.Mesh(new THREE.PlaneGeometry(20,20), floorMaterial)
-floor.rotateX(-Math.PI/2)
-floor.receiveShadow = true
-scene.add(floor)
+//COIN CONTROLS
+const dragCoinControls = new DragControls( [coin], camera, renderer.domElement );
 
 
 //ANIMATION LOOP
