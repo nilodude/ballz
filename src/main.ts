@@ -174,14 +174,22 @@ dragHandleControls.addEventListener( 'drag', function ( event ) {
     event.object.rotation.y= 0
     event.object.rotation.z -= (Math.abs(mouseMovement.x^2) + Math.abs(mouseMovement.y^2))/200
     //need to detect if mouse is left or right to the rotation Z axis, and change the sign of each X, Y contribution
-  }else if(event.object.name == 'coin'){
-    console.log(event)
   }
 });
 
 //COIN CONTROLS
 const dragCoinControls = new DragControls( [coin], camera, renderer.domElement );
+let isCoinDragged = false
+dragCoinControls.addEventListener( 'dragstart', function ( event ) {
+  isCoinDragged = true
+})
+dragCoinControls.addEventListener( 'dragend', function ( event ) {
+  console.log(event.object.position)
+  isCoinDragged = false
+  
+  dynamicBodies[0][1].setTranslation(new RAPIER.Vector3(event.object.position.x,event.object.position.y,event.object.position.z),true) 
 
+})
 
 function isStopped(body: RAPIER.RigidBody){
   const vel = body.linvel()
@@ -205,11 +213,11 @@ function animate() {
   world.step()
   for (let i = 0, n = dynamicBodies.length; i < n; i++) {
     
-    if(dynamicBodies[i][0].name == 'coin' && (dynamicBodies[i][0].position.y < 0.1 && isStopped(dynamicBodies[i][1]))){
+    if(isCoinDragged){
       dynamicBodies[i][1].sleep()
       
-
     }else{
+      dynamicBodies[i][1].wakeUp()
       dynamicBodies[i][0].position.copy(dynamicBodies[i][1].translation())
       dynamicBodies[i][0].quaternion.copy(dynamicBodies[i][1].rotation())
     }
