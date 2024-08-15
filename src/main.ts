@@ -31,7 +31,7 @@ cacharro = await Loader.loadModel(scene,'cacharro')
 mango  = await Loader.loadModel(scene,'mango')
 
 mango.position.y += 1.22293
-
+mango.rotation.z -= Math.PI/2
 
 //CAMERA
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
@@ -154,9 +154,10 @@ flyControls.dragToLook = true;
 
 //HANDLE CONTROLS
 let mouseMovement = {x: 0, y:0}
-
+let mousePosition = {x: 0, y:0}
 document.addEventListener('mousemove',(event)=>{
   mouseMovement = {x:event.movementX, y:event.movementY}
+  mousePosition = {x:event.clientX, y: event.clientY}
 })
 
 const dragHandleControls = new DragControls( [mango], camera, renderer.domElement );
@@ -168,39 +169,34 @@ dragHandleControls.addEventListener( 'dragstart', function ( event ) {
 })
 
 dragHandleControls.addEventListener( 'drag', function ( event ) {
-	console.log(event)
-  if(event.object.name == 'mango'){
-    event.object.rotation.x = 0
-    event.object.rotation.y= 0
-    event.object.rotation.z -= (Math.abs(mouseMovement.x^2) + Math.abs(mouseMovement.y^2))/200
+	console.log(event.object.rotation.z)
+  event.object.rotation.x = 0
+  event.object.rotation.y= 0
+
+  //UP LEFT
+  // if(mousePosition.x < window.innerWidth/2 ){
+  //   event.object.rotation.z -= (mouseMovement.x^2 - mouseMovement.y^2)/200
+  // }
+  event.object.rotation.z -= (Math.abs(mouseMovement.x^2) + Math.abs(mouseMovement.y^2))/200
+
     //need to detect if mouse is left or right to the rotation Z axis, and change the sign of each X, Y contribution
-  }
+  
 });
 
 //COIN CONTROLS
 const dragCoinControls = new DragControls( [coin], camera, renderer.domElement );
 let isCoinDragged = false
-dragCoinControls.addEventListener( 'dragstart', function ( event ) {
+dragCoinControls.addEventListener( 'dragstart', function () {
   isCoinDragged = true
 })
 dragCoinControls.addEventListener( 'dragend', function ( event ) {
-  console.log(event.object.position)
   isCoinDragged = false
-  
   dynamicBodies[0][1].setTranslation(new RAPIER.Vector3(event.object.position.x,event.object.position.y,event.object.position.z),true) 
-
 })
-
-function isStopped(body: RAPIER.RigidBody){
-  const vel = body.linvel()
-  return vel.x == 0 && vel.y == 0 && vel.x == 0
-}
-
 
 //ANIMATION LOOP
 const clock = new THREE.Clock()
 let delta = 0
-// console.log(dynamicBodies)
 function animate() {
   requestAnimationFrame(animate)
 
