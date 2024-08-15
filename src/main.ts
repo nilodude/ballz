@@ -53,8 +53,8 @@ light1.position.y += 300;
 light1.castShadow = true;
 light1.shadow.mapSize.width = 2048;
 light1.shadow.mapSize.height = 2048;
-light1.shadow.camera.near = 0.5; // default
-light1.shadow.camera.far = 5000; 
+light1.shadow.camera.near = 0.1; // default
+light1.shadow.camera.far = 10000; 
 scene.add(light1);
 
 const light2 = new THREE.DirectionalLight( 0xfff9d8, 1 );
@@ -64,9 +64,12 @@ light2.position.x += 2000;
 light2.castShadow = true;
 light2.shadow.mapSize.width = 2048;
 light2.shadow.mapSize.height = 2048;
-light2.shadow.camera.near = 0.5; // default
-light2.shadow.camera.far = 5000; 
+light2.shadow.camera.near = 0.1; // default
+light2.shadow.camera.far = 10000; 
 scene.add(light2);
+
+
+
 
 //GUI & STATS (FPS)
 const stats = new Stats()
@@ -78,6 +81,15 @@ cameraFolder.add(camera.position, 'x', 0, 20)
 cameraFolder.add(camera.position, 'y', 0, 20)
 cameraFolder.add(camera.position, 'z', 0, 20)
 
+const lightFolder = gui.addFolder('lights')
+const light1Folder = lightFolder.addFolder('1')
+light1Folder.add(light1.position, 'x', -10000,10000)
+light1Folder.add(light1.position, 'y', -10000,10000)
+light1Folder.add(light1.position, 'z', -10000,10000)
+const light2Folder = lightFolder.addFolder('2')
+light2Folder.add(light2.position, 'x', -10000,10000)
+light2Folder.add(light2.position, 'y', -10000,10000)
+light2Folder.add(light2.position, 'z', -10000,10000)
 
 //CONTROLS
 let orbitControls = new OrbitControls(camera, renderer.domElement)
