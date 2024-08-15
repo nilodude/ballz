@@ -6,6 +6,13 @@ import { DragControls } from 'three/addons/controls/DragControls.js';
 import Stats from 'three/addons/libs/stats.module.js'
 import { GUI } from 'dat.gui'
 import * as Loader from '../src/loader'
+import RAPIER from '@dimforge/rapier3d-compat'
+
+await RAPIER.init() // This line is only needed if using the compat version
+const gravity = new RAPIER.Vector3(0.0, -9.81, 0.0)
+const world = new RAPIER.World(gravity)
+const dynamicBodies: [THREE.Object3D, RAPIER.RigidBody][] = []
+
 
 //SCENE
 const scene = new THREE.Scene()
@@ -106,6 +113,12 @@ floor.rotateX(-Math.PI/2)
 floor.receiveShadow = true
 scene.add(floor)
 
+const floorBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(0, -0.5, 0))
+const floorShape = RAPIER.ColliderDesc.cuboid(10, 0.5, 10)
+world.createCollider(floorShape, floorBody)
+
+
+
 //COIN
 const coinMaterial = new THREE.MeshPhongMaterial({
   color: new THREE.Color(0xb38f00),
@@ -119,6 +132,11 @@ coin.position.y = 1
 coin.position.z = 0.5
 coin.rotateX(Math.PI/2)
 scene.add( coin );
+
+const coinBody = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(0.5, 1, 0.5).setCanSleep(false))
+const coinShape = RAPIER.ColliderDesc.cylinder(0.0025, 0.01).setMass(1).setRestitution(1.1)
+world.createCollider(coinShape, coinBody)
+dynamicBodies.push([coin, coinBody])
 
 
 //CONTROLS
@@ -170,7 +188,13 @@ function animate() {
     let pos = new THREE.Vector3(cacharro.position.x, cacharro.position.y +1.3, cacharro.position.z)
     camera.lookAt(pos)
   }
-  
+  world.timestep = Math.min(delta, 0.1)
+  world.step()
+  for (let i = 0, n = dynamicBodies.length; i < n; i++) {
+    dynamicBodies[i][0].position.copy(dynamicBodies[i][1].translation())
+    dynamicBodies[i][0].quaternion.copy(dynamicBodies[i][1].rotation())
+  }
+
   flyControls.update( delta );
   renderer.render(scene, camera)
   stats.update()
