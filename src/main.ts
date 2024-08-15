@@ -126,6 +126,7 @@ const coinMaterial = new THREE.MeshPhongMaterial({
 })
 const coinGeometry = new THREE.CylinderGeometry( 0.02, 0.02, 0.005, 16 ); 
 const coin = new THREE.Mesh(coinGeometry, coinMaterial)
+coin.name = 'coin'
 coin.castShadow = true
 coin.position.x = 0.5
 coin.position.y = 1
@@ -133,7 +134,7 @@ coin.position.z = 0.5
 coin.rotateX(Math.PI/2)
 scene.add( coin );
 
-const coinBody = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(0.5, 1, 0.5).setCanSleep(false))
+const coinBody = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(0.5, 1, 0.5).setCanSleep(true))
 const coinShape = RAPIER.ColliderDesc.cylinder(0.0025, 0.01).setMass(1).setRestitution(1.1)
 world.createCollider(coinShape, coinBody)
 dynamicBodies.push([coin, coinBody])
@@ -162,6 +163,10 @@ const dragHandleControls = new DragControls( [mango], camera, renderer.domElemen
 dragHandleControls.mode = 'rotate'
 dragHandleControls.rotateSpeed = 0.5
 
+dragHandleControls.addEventListener( 'dragstart', function ( event ) {
+  console.log(event)
+})
+
 dragHandleControls.addEventListener( 'drag', function ( event ) {
 	console.log(event)
   if(event.object.name == 'mango'){
@@ -169,6 +174,8 @@ dragHandleControls.addEventListener( 'drag', function ( event ) {
     event.object.rotation.y= 0
     event.object.rotation.z -= (Math.abs(mouseMovement.x^2) + Math.abs(mouseMovement.y^2))/200
     //need to detect if mouse is left or right to the rotation Z axis, and change the sign of each X, Y contribution
+  }else if(event.object.name == 'coin'){
+    console.log(event)
   }
 });
 
@@ -176,10 +183,16 @@ dragHandleControls.addEventListener( 'drag', function ( event ) {
 const dragCoinControls = new DragControls( [coin], camera, renderer.domElement );
 
 
+function isStopped(body: RAPIER.RigidBody){
+  const vel = body.linvel()
+  return vel.x == 0 && vel.y == 0 && vel.x == 0
+}
+
+
 //ANIMATION LOOP
 const clock = new THREE.Clock()
 let delta = 0
-
+// console.log(dynamicBodies)
 function animate() {
   requestAnimationFrame(animate)
 
@@ -191,8 +204,16 @@ function animate() {
   world.timestep = Math.min(delta, 0.1)
   world.step()
   for (let i = 0, n = dynamicBodies.length; i < n; i++) {
-    dynamicBodies[i][0].position.copy(dynamicBodies[i][1].translation())
-    dynamicBodies[i][0].quaternion.copy(dynamicBodies[i][1].rotation())
+    
+    if(dynamicBodies[i][0].name == 'coin' && (dynamicBodies[i][0].position.y < 0.1 && isStopped(dynamicBodies[i][1]))){
+      dynamicBodies[i][1].sleep()
+      
+
+    }else{
+      dynamicBodies[i][0].position.copy(dynamicBodies[i][1].translation())
+      dynamicBodies[i][0].quaternion.copy(dynamicBodies[i][1].rotation())
+    }
+    
   }
 
   flyControls.update( delta );
