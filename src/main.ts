@@ -33,6 +33,11 @@ mango  = await Loader.loadModel(scene,'mango')
 mango.position.y += 1.22293
 mango.rotation.z -= Math.PI/2
 
+//MODEL COLLIDERS
+const cacharroBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed())
+const cacharroShape = RAPIER.ColliderDesc.cuboid(10, 0.5, 10)
+world.createCollider(cacharroShape,cacharroBody)
+
 //CAMERA
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
 camera.position.x = 0.75
