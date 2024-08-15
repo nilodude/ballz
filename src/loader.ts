@@ -9,6 +9,13 @@ async function loadModel(scene: THREE.Scene,path: string){
     const gltf = await loader.loadAsync('./'+path+'.glb')
     console.log(gltf)
     model =  gltf.scene
+    model.traverse((node:any)=>{
+        if(node.isMesh){
+            node.castShadow = true
+            model.receiveShadow = true
+        }
+    })
+   
     scene.add(model)
     return model
 }

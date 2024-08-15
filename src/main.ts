@@ -34,7 +34,9 @@ camera.position.z = 2.3
 
 //RENDERER
 const renderer = new THREE.WebGLRenderer()
+renderer.shadowMap.enabled = true;
 renderer.setSize(window.innerWidth, window.innerHeight)
+
 document.body.appendChild(renderer.domElement)
 
 window.addEventListener('resize', () => {
@@ -48,11 +50,22 @@ window.addEventListener('resize', () => {
 const light1 = new THREE.DirectionalLight( 0xfff9d8, 3 );
 light1.position.z += 1000;
 light1.position.y += 300;
+light1.castShadow = true;
+light1.shadow.mapSize.width = 2048;
+light1.shadow.mapSize.height = 2048;
+light1.shadow.camera.near = 0.5; // default
+light1.shadow.camera.far = 5000; 
 scene.add(light1);
+
 const light2 = new THREE.DirectionalLight( 0xfff9d8, 1 );
 light2.position.z -= 3000;
 light2.position.y += 220;
 light2.position.x += 2000;
+light2.castShadow = true;
+light2.shadow.mapSize.width = 2048;
+light2.shadow.mapSize.height = 2048;
+light2.shadow.camera.near = 0.5; // default
+light2.shadow.camera.far = 5000; 
 scene.add(light2);
 
 //GUI & STATS (FPS)
@@ -71,7 +84,7 @@ let orbitControls = new OrbitControls(camera, renderer.domElement)
 orbitControls.enableRotate = false
 
 let flyControls = new FlyControls( camera, renderer.domElement );
-flyControls.movementSpeed = 1.5;
+flyControls.movementSpeed = 1.7;
 flyControls.domElement = renderer.domElement;
 flyControls.rollSpeed = Math.PI / 24;
 flyControls.autoForward = false;
@@ -94,6 +107,17 @@ dragControls.addEventListener( 'drag', function ( event ) {
   event.object.rotation.z -= (Math.abs(mouseMovement.x^2) + Math.abs(mouseMovement.y^2))/200
   //need to detect if mouse is left or right to the rotation Z axis, and change the sign of each X, Y contribution
 });
+
+//CREATE WORLD OBJECTS
+const floorMaterial = new THREE.MeshPhongMaterial({
+  color: new THREE.Color(0xbabaca),
+  shadowSide: THREE.FrontSide,
+  side: THREE.FrontSide
+})
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(20,20), floorMaterial)
+floor.rotateX(-Math.PI/2)
+floor.receiveShadow = true
+scene.add(floor)
 
 
 //ANIMATION LOOP
