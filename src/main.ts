@@ -29,6 +29,7 @@ let bola = new THREE.Group<THREE.Object3DEventMap>()
 let cacharro = new THREE.Group<THREE.Object3DEventMap>()
 let mango = new THREE.Group<THREE.Object3DEventMap>()
 
+// maybe worth it to finetune MeshPhysicalMaterial to look like glass, but the scene needs the environment lighting setup correctly
 bola = await Loader.loadModel(scene,'bola')
 cacharro = await Loader.loadModel(scene,'cacharro')
 mango  = await Loader.loadModel(scene,'mango')
@@ -104,17 +105,32 @@ light2Folder.add(light2.position, 'z', -10000,10000)
 
 
 //CREATE WORLD OBJECTS
-//MODEL COLLIDER
+// #region MODEL COLLIDER
 const cacharroBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed())
-const cacharroMesh = cacharro.children[0].children[0] as THREE.Mesh
+
+const v = new THREE.Vector3()
+let positions: number[] = []
+cacharro.updateMatrixWorld(true) // ensure world matrix is up to date
+cacharro.traverse((o) => {
+  if (o.type === 'Mesh') {
+    const positionAttribute = (o as THREE.Mesh).geometry.getAttribute('position')
+    for (let i = 0, l = positionAttribute.count; i < l; i++) {
+      v.fromBufferAttribute(positionAttribute, i)
+      v.applyMatrix4((o.parent as THREE.Object3D).matrixWorld)
+      positions.push(...v)
+    }
+  }
+})
+
+const cacharroMesh = cacharro.children[0].children[1] as THREE.Mesh
 console.log(cacharroMesh)
-// const cacharroMesh =  cacharro.getObjectByName('cacharro') as THREE.Group
 const points = new Float32Array(cacharroMesh.geometry.attributes.position.array)
 const indices = new Uint32Array((cacharroMesh.geometry.index as THREE.BufferAttribute).array)
-const cacharroShape = (RAPIER.ColliderDesc.trimesh(points,indices)as RAPIER.ColliderDesc).setMass(12)
-// const cacharroShape = RAPIER.ColliderDesc.cuboid(10, 0.5, 10)
+const cacharroShape = (RAPIER.ColliderDesc.convexHull(new Float32Array(points)) as RAPIER.ColliderDesc).setMass(100).setRestitution(0.01)
+// const cacharroShape = (RAPIER.ColliderDesc.trimesh(points,indices)as RAPIER.ColliderDesc).setMass(12)
 world.createCollider(cacharroShape,cacharroBody)
 
+// #endregion MODEL COLLIDER
 
 //FLOOR 
 const floorMaterial = new THREE.MeshPhongMaterial({
