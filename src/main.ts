@@ -33,10 +33,7 @@ mango  = await Loader.loadModel(scene,'mango')
 mango.position.y += 1.22293
 mango.rotation.z -= Math.PI/2
 
-//MODEL COLLIDERS
-const cacharroBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed())
-const cacharroShape = RAPIER.ColliderDesc.cuboid(10, 0.5, 10)
-world.createCollider(cacharroShape,cacharroBody)
+
 
 //CAMERA
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
@@ -104,7 +101,16 @@ light2Folder.add(light2.position, 'z', -10000,10000)
 
 
 //CREATE WORLD OBJECTS
-//FLOOR
+//MODEL COLLIDER
+const cacharroBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed())
+const cacharroMesh = cacharro.children[0].children[0] as THREE.Mesh
+const points = new Float32Array(cacharroMesh.geometry.attributes.position.array)
+const cacharroShape = (RAPIER.ColliderDesc.convexHull(points)as RAPIER.ColliderDesc).setMass(100)
+// const cacharroShape = RAPIER.ColliderDesc.cuboid(10, 0.5, 10)
+world.createCollider(cacharroShape,cacharroBody)
+
+
+//FLOOR 
 const floorMaterial = new THREE.MeshPhongMaterial({
   color: new THREE.Color(0xbabaca),
   side: THREE.DoubleSide
@@ -113,9 +119,9 @@ const floor = new THREE.Mesh(new THREE.PlaneGeometry(20,20), floorMaterial)
 floor.rotateX(-Math.PI/2)
 floor.receiveShadow = true
 scene.add(floor)
-
-const floorBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(0, -0.5, 0))
-const floorShape = RAPIER.ColliderDesc.cuboid(10, 0.5, 10)
+//FLOOR COLLIDER
+const floorBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(0, -0.0999, 0))
+const floorShape = RAPIER.ColliderDesc.cuboid(10, 0.1, 10)
 world.createCollider(floorShape, floorBody)
 
 
@@ -134,7 +140,7 @@ coin.position.y = 1
 coin.position.z = 0.5
 coin.rotateX(Math.PI/2)
 scene.add( coin );
-
+//COIN COLLIDER
 const coinBody = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(0.5, 1, 0.5).setCanSleep(true))
 const coinShape = RAPIER.ColliderDesc.cylinder(0.0025, 0.01).setMass(1).setRestitution(1.1)
 world.createCollider(coinShape, coinBody)
@@ -189,6 +195,10 @@ const dragCoinControls = new DragControls( [coin], camera, renderer.domElement )
 let isCoinDragged = false
 dragCoinControls.addEventListener( 'dragstart', function () {
   isCoinDragged = true
+  coin.rotateX(Math.PI/2)
+})
+dragCoinControls.addEventListener( 'drag', function () {
+  
 })
 dragCoinControls.addEventListener( 'dragend', function ( event ) {
   isCoinDragged = false

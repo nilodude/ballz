@@ -7,8 +7,8 @@ const loader = new GLTFLoader()
 async function loadModel(scene: THREE.Scene,path: string){
     let model = new THREE.Group<THREE.Object3DEventMap>()
     const gltf = await loader.loadAsync('./'+path+'.glb')
-    console.log(gltf)
     model =  gltf.scene
+    console.log(model)
     model.traverse((node:any)=>{
         if(node.isMesh){
             node.castShadow = true
