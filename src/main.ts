@@ -81,8 +81,6 @@ light2.shadow.camera.far = 10000;
 scene.add(light2);
 
 
-
-
 //GUI & STATS (FPS)
 const stats = new Stats()
 document.body.appendChild(stats.dom)
@@ -102,8 +100,6 @@ const light2Folder = lightFolder.addFolder('2')
 light2Folder.add(light2.position, 'x', -10000,10000)
 light2Folder.add(light2.position, 'y', -10000,10000)
 light2Folder.add(light2.position, 'z', -10000,10000)
-
-
 
 
 
@@ -197,6 +193,8 @@ dragCoinControls.addEventListener( 'dragstart', function () {
 dragCoinControls.addEventListener( 'dragend', function ( event ) {
   isCoinDragged = false
   dynamicBodies[0][1].setTranslation(new RAPIER.Vector3(event.object.position.x,event.object.position.y,event.object.position.z),true) 
+  dynamicBodies[0][1].setLinvel(new RAPIER.Vector3(mouseMovement.x/10, -mouseMovement.y/8, 0),true)
+  dynamicBodies[0][1].setAngvel(new RAPIER.Vector3(30*Math.random()-15,30*Math.random()-15,30*Math.random()-15),true)
 })
 
 //ANIMATION LOOP
