@@ -7,8 +7,10 @@ import Stats from 'three/addons/libs/stats.module.js'
 import { GUI } from 'dat.gui'
 import * as Loader from '../src/loader'
 import RAPIER from '@dimforge/rapier3d-compat'
+import { RapierDebugRenderer } from '../src/debugRenderer'
 
 await RAPIER.init() // This line is only needed if using the compat version
+
 const gravity = new RAPIER.Vector3(0.0, -9.81, 0.0)
 const world = new RAPIER.World(gravity)
 const dynamicBodies: [THREE.Object3D, RAPIER.RigidBody][] = []
@@ -20,6 +22,7 @@ scene.add(new THREE.AxesHelper(5))
 scene.background = new THREE.CubeTextureLoader().setPath('https://sbcode.net/img/').load(['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png'])
 scene.backgroundBlurriness = 0
 
+const rapierDebugRenderer = new RapierDebugRenderer(scene, world)
 
 //LOAD MODELS
 let bola = new THREE.Group<THREE.Object3DEventMap>()
@@ -104,8 +107,11 @@ light2Folder.add(light2.position, 'z', -10000,10000)
 //MODEL COLLIDER
 const cacharroBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed())
 const cacharroMesh = cacharro.children[0].children[0] as THREE.Mesh
+console.log(cacharroMesh)
+// const cacharroMesh =  cacharro.getObjectByName('cacharro') as THREE.Group
 const points = new Float32Array(cacharroMesh.geometry.attributes.position.array)
-const cacharroShape = (RAPIER.ColliderDesc.convexHull(points)as RAPIER.ColliderDesc).setMass(100)
+const indices = new Uint32Array((cacharroMesh.geometry.index as THREE.BufferAttribute).array)
+const cacharroShape = (RAPIER.ColliderDesc.trimesh(points,indices)as RAPIER.ColliderDesc).setMass(12)
 // const cacharroShape = RAPIER.ColliderDesc.cuboid(10, 0.5, 10)
 world.createCollider(cacharroShape,cacharroBody)
 
@@ -148,8 +154,8 @@ dynamicBodies.push([coin, coinBody])
 
 
 //CONTROLS
-let orbitControls = new OrbitControls(camera, renderer.domElement)
-orbitControls.enableRotate = false
+// let orbitControls = new OrbitControls(camera, renderer.domElement)
+// orbitControls.enableRotate = false
 
 let flyControls = new FlyControls( camera, renderer.domElement );
 flyControls.movementSpeed = 1.7;
@@ -232,7 +238,7 @@ function animate() {
     }
     
   }
-
+  rapierDebugRenderer.update()
   flyControls.update( delta );
   renderer.render(scene, camera)
   stats.update()
