@@ -125,7 +125,6 @@ cacharro.updateMatrixWorld(true) // ensure world matrix is up to date
 //metal
 const cacharroMesh = cacharro.children[0].children[0] as THREE.Mesh
 const points = new Float32Array(cacharroMesh.geometry.attributes.position.array)
-console.log(cacharroMesh)
 const indices = new Uint32Array((cacharroMesh.geometry.index as THREE.BufferAttribute).array)
 const cacharroShape = (RAPIER.ColliderDesc.trimesh(new Float32Array(points),new Uint32Array(indices))as RAPIER.ColliderDesc).setMass(12)
 world.createCollider(cacharroShape,cacharroBody)
@@ -133,14 +132,25 @@ world.createCollider(cacharroShape,cacharroBody)
 //non metal
 const cacharroMesh1 = cacharro.children[0].children[1] as THREE.Mesh
 const points1 = new Float32Array(cacharroMesh1.geometry.attributes.position.array)
-console.log(cacharroMesh)
 const indices1 = new Uint32Array((cacharroMesh1.geometry.index as THREE.BufferAttribute).array)
 const cacharroShape1 = (RAPIER.ColliderDesc.trimesh(new Float32Array(points1),new Uint32Array(indices1))as RAPIER.ColliderDesc).setMass(12)
 world.createCollider(cacharroShape1,cacharroBody)
 
 // #endregion
-
-
+//MANGO COLLIDER
+// #region MANGO COLLIDER
+//must fix mango in Blender so it sits on 0,0,0
+const mangoBody = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 1, 0.2997235357761383 ).setCanSleep(true))
+mango.updateMatrixWorld(true)
+const mangoMesh = mango.children[0] as THREE.Mesh
+mangoMesh.position.z = 0
+mangoMesh.rotation.z-= Math.PI/2
+const mangoPoints = new Float32Array(mangoMesh.geometry.attributes.position.array)
+const mangoindices = new Uint32Array((mangoMesh.geometry.index as THREE.BufferAttribute).array)
+const mangoShape = (RAPIER.ColliderDesc.trimesh(new Float32Array(mangoPoints),new Uint32Array(mangoindices))as RAPIER.ColliderDesc).setMass(0)
+world.createCollider(mangoShape,mangoBody)
+dynamicBodies.push([mango, mangoBody])
+// #endregion
 
 //FLOOR 
 // #region FLOOR
@@ -160,8 +170,8 @@ world.createCollider(floorShape, floorBody)
 
 
 
-//COIN MESH
-// #region COIN MESH
+//COIN 
+// #region COIN 
 const coinMaterial = new THREE.MeshPhongMaterial({
   color: new THREE.Color(0xb38f00),
   side: THREE.DoubleSide
@@ -197,8 +207,8 @@ flyControls.autoForward = false;
 flyControls.dragToLook = true;
 
 
-//HANDLE CONTROLS
-// #region HANDLE CONTROLS
+//MANGO CONTROLS
+// #region MANGO CONTROLS
 let mouseMovement = {x: 0, y:0}
 let mousePosition = {x: 0, y:0}
 document.addEventListener('mousemove',(event)=>{
@@ -218,18 +228,16 @@ dragHandleControls.addEventListener( 'drag', function ( event ) {
 	console.log(event.object.rotation.z)
   event.object.rotation.x = 0
   event.object.rotation.y= 0
-
-  //UP LEFT
-  // if(mousePosition.x < window.innerWidth/2 ){
-  //   event.object.rotation.z -= (mouseMovement.x^2 - mouseMovement.y^2)/200
-  // }
   event.object.rotation.z -= (Math.abs(mouseMovement.x^2) + Math.abs(mouseMovement.y^2))/200
 
     //need to detect if mouse is left or right to the rotation Z axis, and change the sign of each X, Y contribution
   
 });
-// #endregion HANDLE CONTROLS
+// #endregion MANGO CONTROLS
 
+dragHandleControls.addEventListener( 'dragend', function ( event ) {
+  dynamicBodies[0][1].setTranslation(new RAPIER.Vector3(event.object.position.x,event.object.position.y,event.object.position.z),true) 
+})
 
 
 
@@ -248,11 +256,11 @@ dragCoinControls.addEventListener( 'drag', function () {
 })
 dragCoinControls.addEventListener( 'dragend', function ( event ) {
   isCoinDragged = false
-  dynamicBodies[0][1].setTranslation(new RAPIER.Vector3(event.object.position.x,event.object.position.y,event.object.position.z),true) 
+  dynamicBodies[1][1].setTranslation(new RAPIER.Vector3(event.object.position.x,event.object.position.y,event.object.position.z),true) 
   //MUST SET DIRECTION FROM WHEREVER CAMERA IS LOOKING
   //resulting vector should substract "cacharro" pointing vector ( +Z or (0,0,1)) from camera pointing vector, so mouseMovementXY is applied NOT only on XY, which is current behavior
-  dynamicBodies[0][1].setLinvel(new RAPIER.Vector3(mouseMovement.x/10, -mouseMovement.y/8, 0),true)
-  dynamicBodies[0][1].setAngvel(new RAPIER.Vector3(30*Math.random()-15,30*Math.random()-15,30*Math.random()-15),true)
+  dynamicBodies[1][1].setLinvel(new RAPIER.Vector3(mouseMovement.x/10, -mouseMovement.y/8, 0),true)
+  dynamicBodies[1][1].setAngvel(new RAPIER.Vector3(30*Math.random()-15,30*Math.random()-15,30*Math.random()-15),true)
 })
 // #endregion COIN CONTROLS
 // #endregion CONTROLS
