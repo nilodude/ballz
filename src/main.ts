@@ -139,8 +139,8 @@ world.createCollider(cacharroShape1,cacharroBody)
 // #endregion
 //MANGO COLLIDER
 // #region MANGO COLLIDER
-//must fix mango in Blender so it sits on 0,0,0
-const mangoBody = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 1, 0.2997235357761383 ).setCanSleep(true))
+//MUST ADD A JOINT BETWEEN cacharroMesh and cacharroSHape1(metal) SO GRAVITY WONT PULL DOWN WHEN TOUCHED
+const mangoBody = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 1.22, mango.children[0].position.z ).setCanSleep(true))
 mango.updateMatrixWorld(true)
 const mangoMesh = mango.children[0] as THREE.Mesh
 mangoMesh.position.z = 0
@@ -187,7 +187,7 @@ coin.rotateX(Math.PI/2)
 scene.add( coin );
 //COLLIDER
 const coinBody = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(0.5, 1, 0.5).setCanSleep(true))
-const coinShape = RAPIER.ColliderDesc.cylinder(0.005, 0.02).setMass(1).setRestitution(1.1)
+const coinShape = RAPIER.ColliderDesc.cylinder(0.005, 0.02).setMass(5).setRestitution(1)
 world.createCollider(coinShape, coinBody)
 dynamicBodies.push([coin, coinBody])
 // #endregion COIN
@@ -229,6 +229,7 @@ dragHandleControls.addEventListener( 'drag', function ( event ) {
   event.object.rotation.x = 0
   event.object.rotation.y= 0
   event.object.rotation.z -= (Math.abs(mouseMovement.x^2) + Math.abs(mouseMovement.y^2))/200
+  dynamicBodies[0][1].setRotation({x:0,y:0,z:mango.quaternion.z,w:mango.quaternion.w},true)
 
     //need to detect if mouse is left or right to the rotation Z axis, and change the sign of each X, Y contribution
   
@@ -236,7 +237,8 @@ dragHandleControls.addEventListener( 'drag', function ( event ) {
 // #endregion MANGO CONTROLS
 
 dragHandleControls.addEventListener( 'dragend', function ( event ) {
-  dynamicBodies[0][1].setTranslation(new RAPIER.Vector3(event.object.position.x,event.object.position.y,event.object.position.z),true) 
+  dynamicBodies[0][1].setTranslation(new RAPIER.Vector3(0, 1.22, 0.2998),true) 
+  dynamicBodies[0][1].setRotation({x:mango.quaternion.x,y:mango.quaternion.y,z:mango.quaternion.z,w:mango.quaternion.w},true)
 })
 
 
@@ -247,20 +249,22 @@ const dragCoinControls = new DragControls( [coin], camera, renderer.domElement )
 let isCoinDragged = false
 dragCoinControls.addEventListener( 'dragstart', function (event) {
   isCoinDragged = true
+  event.object.position.z = 0.2998
   event.object.rotation.x = 0
   event.object.rotation.y= 0
   event.object.rotateX(Math.PI/2)
 })
-dragCoinControls.addEventListener( 'drag', function () {
-  
+dragCoinControls.addEventListener( 'drag', function (event) {
+  event.object.position.z = 0.2998
 })
 dragCoinControls.addEventListener( 'dragend', function ( event ) {
+  event.object.position.z = 0.2998
   isCoinDragged = false
   dynamicBodies[1][1].setTranslation(new RAPIER.Vector3(event.object.position.x,event.object.position.y,event.object.position.z),true) 
   //MUST SET DIRECTION FROM WHEREVER CAMERA IS LOOKING
   //resulting vector should substract "cacharro" pointing vector ( +Z or (0,0,1)) from camera pointing vector, so mouseMovementXY is applied NOT only on XY, which is current behavior
   dynamicBodies[1][1].setLinvel(new RAPIER.Vector3(mouseMovement.x/10, -mouseMovement.y/8, 0),true)
-  dynamicBodies[1][1].setAngvel(new RAPIER.Vector3(30*Math.random()-15,30*Math.random()-15,30*Math.random()-15),true)
+  // dynamicBodies[1][1].setAngvsel(new RAPIER.Vector3(30*Math.random()-15,30*Math.random()-15,30*Math.random()-15),true)
 })
 // #endregion COIN CONTROLS
 // #endregion CONTROLS
