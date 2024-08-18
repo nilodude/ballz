@@ -25,21 +25,24 @@ scene.backgroundBlurriness = 0
 const rapierDebugRenderer = new RapierDebugRenderer(scene, world)
 
 //LOAD MODELS
+//#region LOAD MODELS
 let bola = new THREE.Group<THREE.Object3DEventMap>()
 let cacharro = new THREE.Group<THREE.Object3DEventMap>()
 let mango = new THREE.Group<THREE.Object3DEventMap>()
 
-// maybe worth it to finetune MeshPhysicalMaterial to look like glass, but the scene needs the environment lighting setup correctly
+// maybe worth it to finetune MeshPhysicalMaterial to look like glass, but for that to work, scene needs ENVIRONMENT lighting setup correctly
 bola = await Loader.loadModel(scene,'bola')
 cacharro = await Loader.loadModel(scene,'cacharro')
 mango  = await Loader.loadModel(scene,'mango')
 
 mango.position.y += 1.22293
 mango.rotation.z -= Math.PI/2
+//#endregion LOAD MODELS
 
 
 
-//CAMERA
+//CAMERA & RENDERER
+// #region CAMERA & RENDERER
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
 camera.position.x = 0.75
 camera.position.y = 1.3
@@ -57,9 +60,13 @@ window.addEventListener('resize', () => {
   camera.updateProjectionMatrix()
   renderer.setSize(window.innerWidth, window.innerHeight)
 })
+// #endregion CAMERA & RENDERER
+
+
 
 
 //LIGHTS
+// #region LIGHTS
 const light1 = new THREE.DirectionalLight( 0xfff9d8, 3 );
 light1.position.z += 1000;
 light1.position.y += 300;
@@ -80,6 +87,9 @@ light2.shadow.mapSize.height = 2048;
 light2.shadow.camera.near = 0.1; // default
 light2.shadow.camera.far = 10000; 
 scene.add(light2);
+// #endregion LIGHTS
+
+
 
 
 //GUI & STATS (FPS)
@@ -105,35 +115,18 @@ light2Folder.add(light2.position, 'z', -10000,10000)
 // #endregion GUI & STATS
 
 
+
+
+//CACHARRO COLLIDER
 // #region CACHARRO COLLIDER
 const cacharroBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed())
-
-const v = new THREE.Vector3()
-let positions: number[] = []
-let indicess: number[] = []
 cacharro.updateMatrixWorld(true) // ensure world matrix is up to date
-cacharro.traverse((o) => {
-  if (o.type === 'Mesh') {
-    (o as THREE.Mesh).geometry
-    const positionAttribute = (o as THREE.Mesh).geometry.getAttribute('position')
-    for (let i = 0, l = positionAttribute.count; i < l; i++) {
-      v.fromBufferAttribute(positionAttribute, i)
-      v.applyMatrix4((o.parent as THREE.Object3D).matrixWorld)
-      positions.push(...v)
-    }
 
-    const indexAttribute = (o as THREE.Mesh).geometry?.index?.array as THREE.TypedArray
-    indicess.push(...indexAttribute)
-  
-  }
-})
 //metal
 const cacharroMesh = cacharro.children[0].children[0] as THREE.Mesh
 const points = new Float32Array(cacharroMesh.geometry.attributes.position.array)
 console.log(cacharroMesh)
-// const points = new Float32Array(positions)
 const indices = new Uint32Array((cacharroMesh.geometry.index as THREE.BufferAttribute).array)
-// const cacharroShape = (RAPIER.ColliderDesc.convexHull(new Float32Array(points)) as RAPIER.ColliderDesc).setMass(100).setRestitution(0.01)
 const cacharroShape = (RAPIER.ColliderDesc.trimesh(new Float32Array(points),new Uint32Array(indices))as RAPIER.ColliderDesc).setMass(12)
 world.createCollider(cacharroShape,cacharroBody)
 
@@ -141,16 +134,16 @@ world.createCollider(cacharroShape,cacharroBody)
 const cacharroMesh1 = cacharro.children[0].children[1] as THREE.Mesh
 const points1 = new Float32Array(cacharroMesh1.geometry.attributes.position.array)
 console.log(cacharroMesh)
-// const points = new Float32Array(positions)
 const indices1 = new Uint32Array((cacharroMesh1.geometry.index as THREE.BufferAttribute).array)
-// const cacharroShape = (RAPIER.ColliderDesc.convexHull(new Float32Array(points)) as RAPIER.ColliderDesc).setMass(100).setRestitution(0.01)
 const cacharroShape1 = (RAPIER.ColliderDesc.trimesh(new Float32Array(points1),new Uint32Array(indices1))as RAPIER.ColliderDesc).setMass(12)
 world.createCollider(cacharroShape1,cacharroBody)
 
-// #endregion MODEL COLLIDER
+// #endregion
+
 
 
 //FLOOR 
+// #region FLOOR
 const floorMaterial = new THREE.MeshPhongMaterial({
   color: new THREE.Color(0xbabaca),
   side: THREE.DoubleSide
@@ -163,6 +156,7 @@ scene.add(floor)
 const floorBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(0, -0.0999, 0))
 const floorShape = RAPIER.ColliderDesc.cuboid(10, 0.1, 10)
 world.createCollider(floorShape, floorBody)
+// #endregion FLOOR
 
 
 
@@ -187,6 +181,8 @@ const coinShape = RAPIER.ColliderDesc.cylinder(0.005, 0.02).setMass(1).setRestit
 world.createCollider(coinShape, coinBody)
 dynamicBodies.push([coin, coinBody])
 // #endregion COIN
+
+
 
 //CONTROLS
 // #region CONTROLS
@@ -233,6 +229,9 @@ dragHandleControls.addEventListener( 'drag', function ( event ) {
   
 });
 // #endregion HANDLE CONTROLS
+
+
+
 
 //COIN CONTROLS
 // #region COIN CONTROLS
