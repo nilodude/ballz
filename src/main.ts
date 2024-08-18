@@ -166,8 +166,8 @@ world.createCollider(floorShape, floorBody)
 
 
 
-//COIN
-// #region COIN
+//COIN MESH
+// #region COIN MESH
 const coinMaterial = new THREE.MeshPhongMaterial({
   color: new THREE.Color(0xb38f00),
   side: THREE.DoubleSide
@@ -181,9 +181,9 @@ coin.position.y = 1
 coin.position.z = 0.5
 coin.rotateX(Math.PI/2)
 scene.add( coin );
-//COIN COLLIDER
+//COLLIDER
 const coinBody = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(0.5, 1, 0.5).setCanSleep(true))
-const coinShape = RAPIER.ColliderDesc.cylinder(0.005, 0.01).setMass(1).setRestitution(1.1)
+const coinShape = RAPIER.ColliderDesc.cylinder(0.005, 0.02).setMass(1).setRestitution(1.1)
 world.createCollider(coinShape, coinBody)
 dynamicBodies.push([coin, coinBody])
 // #endregion COIN
@@ -202,6 +202,7 @@ flyControls.dragToLook = true;
 
 
 //HANDLE CONTROLS
+// #region HANDLE CONTROLS
 let mouseMovement = {x: 0, y:0}
 let mousePosition = {x: 0, y:0}
 document.addEventListener('mousemove',(event)=>{
@@ -231,8 +232,10 @@ dragHandleControls.addEventListener( 'drag', function ( event ) {
     //need to detect if mouse is left or right to the rotation Z axis, and change the sign of each X, Y contribution
   
 });
+// #endregion HANDLE CONTROLS
 
 //COIN CONTROLS
+// #region COIN CONTROLS
 const dragCoinControls = new DragControls( [coin], camera, renderer.domElement );
 let isCoinDragged = false
 dragCoinControls.addEventListener( 'dragstart', function (event) {
@@ -247,9 +250,12 @@ dragCoinControls.addEventListener( 'drag', function () {
 dragCoinControls.addEventListener( 'dragend', function ( event ) {
   isCoinDragged = false
   dynamicBodies[0][1].setTranslation(new RAPIER.Vector3(event.object.position.x,event.object.position.y,event.object.position.z),true) 
+  //MUST SET DIRECTION FROM WHEREVER CAMERA IS LOOKING
+  //resulting vector should substract "cacharro" pointing vector ( +Z or (0,0,1)) from camera pointing vector, so mouseMovementXY is applied NOT only on XY, which is current behavior
   dynamicBodies[0][1].setLinvel(new RAPIER.Vector3(mouseMovement.x/10, -mouseMovement.y/8, 0),true)
   dynamicBodies[0][1].setAngvel(new RAPIER.Vector3(30*Math.random()-15,30*Math.random()-15,30*Math.random()-15),true)
 })
+// #endregion COIN CONTROLS
 // #endregion CONTROLS
 
 //ANIMATION LOOP
