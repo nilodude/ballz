@@ -83,6 +83,7 @@ scene.add(light2);
 
 
 //GUI & STATS (FPS)
+// #region GUI & STATS
 const stats = new Stats()
 document.body.appendChild(stats.dom)
 
@@ -101,36 +102,53 @@ const light2Folder = lightFolder.addFolder('2')
 light2Folder.add(light2.position, 'x', -10000,10000)
 light2Folder.add(light2.position, 'y', -10000,10000)
 light2Folder.add(light2.position, 'z', -10000,10000)
+// #endregion GUI & STATS
 
 
-
-//CREATE WORLD OBJECTS
-// #region MODEL COLLIDER
+// #region CACHARRO COLLIDER
 const cacharroBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed())
 
 const v = new THREE.Vector3()
 let positions: number[] = []
+let indicess: number[] = []
 cacharro.updateMatrixWorld(true) // ensure world matrix is up to date
 cacharro.traverse((o) => {
   if (o.type === 'Mesh') {
+    (o as THREE.Mesh).geometry
     const positionAttribute = (o as THREE.Mesh).geometry.getAttribute('position')
     for (let i = 0, l = positionAttribute.count; i < l; i++) {
       v.fromBufferAttribute(positionAttribute, i)
       v.applyMatrix4((o.parent as THREE.Object3D).matrixWorld)
       positions.push(...v)
     }
+
+    const indexAttribute = (o as THREE.Mesh).geometry?.index?.array as THREE.TypedArray
+    indicess.push(...indexAttribute)
+  
   }
 })
-
-const cacharroMesh = cacharro.children[0].children[1] as THREE.Mesh
-console.log(cacharroMesh)
+//metal
+const cacharroMesh = cacharro.children[0].children[0] as THREE.Mesh
 const points = new Float32Array(cacharroMesh.geometry.attributes.position.array)
+console.log(cacharroMesh)
+// const points = new Float32Array(positions)
 const indices = new Uint32Array((cacharroMesh.geometry.index as THREE.BufferAttribute).array)
-const cacharroShape = (RAPIER.ColliderDesc.convexHull(new Float32Array(points)) as RAPIER.ColliderDesc).setMass(100).setRestitution(0.01)
-// const cacharroShape = (RAPIER.ColliderDesc.trimesh(points,indices)as RAPIER.ColliderDesc).setMass(12)
+// const cacharroShape = (RAPIER.ColliderDesc.convexHull(new Float32Array(points)) as RAPIER.ColliderDesc).setMass(100).setRestitution(0.01)
+const cacharroShape = (RAPIER.ColliderDesc.trimesh(new Float32Array(points),new Uint32Array(indices))as RAPIER.ColliderDesc).setMass(12)
 world.createCollider(cacharroShape,cacharroBody)
 
+//non metal
+const cacharroMesh1 = cacharro.children[0].children[1] as THREE.Mesh
+const points1 = new Float32Array(cacharroMesh1.geometry.attributes.position.array)
+console.log(cacharroMesh)
+// const points = new Float32Array(positions)
+const indices1 = new Uint32Array((cacharroMesh1.geometry.index as THREE.BufferAttribute).array)
+// const cacharroShape = (RAPIER.ColliderDesc.convexHull(new Float32Array(points)) as RAPIER.ColliderDesc).setMass(100).setRestitution(0.01)
+const cacharroShape1 = (RAPIER.ColliderDesc.trimesh(new Float32Array(points1),new Uint32Array(indices1))as RAPIER.ColliderDesc).setMass(12)
+world.createCollider(cacharroShape1,cacharroBody)
+
 // #endregion MODEL COLLIDER
+
 
 //FLOOR 
 const floorMaterial = new THREE.MeshPhongMaterial({
@@ -149,6 +167,7 @@ world.createCollider(floorShape, floorBody)
 
 
 //COIN
+// #region COIN
 const coinMaterial = new THREE.MeshPhongMaterial({
   color: new THREE.Color(0xb38f00),
   side: THREE.DoubleSide
@@ -164,14 +183,15 @@ coin.rotateX(Math.PI/2)
 scene.add( coin );
 //COIN COLLIDER
 const coinBody = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(0.5, 1, 0.5).setCanSleep(true))
-const coinShape = RAPIER.ColliderDesc.cylinder(0.0025, 0.01).setMass(1).setRestitution(1.1)
+const coinShape = RAPIER.ColliderDesc.cylinder(0.005, 0.01).setMass(1).setRestitution(1.1)
 world.createCollider(coinShape, coinBody)
 dynamicBodies.push([coin, coinBody])
-
+// #endregion COIN
 
 //CONTROLS
-// let orbitControls = new OrbitControls(camera, renderer.domElement)
-// orbitControls.enableRotate = false
+// #region CONTROLS
+let orbitControls = new OrbitControls(camera, renderer.domElement)
+orbitControls.enableRotate = false
 
 let flyControls = new FlyControls( camera, renderer.domElement );
 flyControls.movementSpeed = 1.7;
@@ -215,9 +235,11 @@ dragHandleControls.addEventListener( 'drag', function ( event ) {
 //COIN CONTROLS
 const dragCoinControls = new DragControls( [coin], camera, renderer.domElement );
 let isCoinDragged = false
-dragCoinControls.addEventListener( 'dragstart', function () {
+dragCoinControls.addEventListener( 'dragstart', function (event) {
   isCoinDragged = true
-  coin.rotateX(Math.PI/2)
+  event.object.rotation.x = 0
+  event.object.rotation.y= 0
+  event.object.rotateX(Math.PI/2)
 })
 dragCoinControls.addEventListener( 'drag', function () {
   
@@ -228,6 +250,7 @@ dragCoinControls.addEventListener( 'dragend', function ( event ) {
   dynamicBodies[0][1].setLinvel(new RAPIER.Vector3(mouseMovement.x/10, -mouseMovement.y/8, 0),true)
   dynamicBodies[0][1].setAngvel(new RAPIER.Vector3(30*Math.random()-15,30*Math.random()-15,30*Math.random()-15),true)
 })
+// #endregion CONTROLS
 
 //ANIMATION LOOP
 const clock = new THREE.Clock()
