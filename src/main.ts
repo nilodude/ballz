@@ -88,7 +88,7 @@ light2.shadow.mapSize.width = 2048;
 light2.shadow.mapSize.height = 2048;
 light2.shadow.camera.near = 0.1; // default
 light2.shadow.camera.far = 10000; 
-scene.add(light2);
+// scene.add(light2);
 // #endregion LIGHTS
 
 
@@ -156,7 +156,7 @@ dynamicBodies.push([mango, mangoBody])
 
 //FLOOR 
 // #region FLOOR
-const floorMaterial = new THREE.MeshPhongMaterial({
+const floorMaterial = new THREE.MeshPhysicalMaterial({
   color: new THREE.Color(0xbabaca),
   side: THREE.DoubleSide
 })
@@ -189,7 +189,7 @@ coin.rotateX(Math.PI/2)
 scene.add( coin );
 //COLLIDER
 const coinBody = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(0.5, 1, 0.5).setCanSleep(true))
-const coinShape = RAPIER.ColliderDesc.cylinder(0.005, 0.02).setMass(5).setRestitution(1)
+const coinShape = RAPIER.ColliderDesc.cylinder(0.0025, 0.02).setMass(5).setRestitution(1)
 world.createCollider(coinShape, coinBody)
 dynamicBodies.push([coin, coinBody])
 // #endregion COIN
