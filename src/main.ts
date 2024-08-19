@@ -19,7 +19,9 @@ const dynamicBodies: [THREE.Object3D, RAPIER.RigidBody][] = []
 //SCENE
 const scene = new THREE.Scene()
 scene.add(new THREE.AxesHelper(5))
-scene.background = new THREE.CubeTextureLoader().setPath('https://sbcode.net/img/').load(['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png'])
+let environmentTexture = new THREE.CubeTextureLoader().setPath('https://sbcode.net/img/').load(['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png'])
+scene.background = environmentTexture
+scene.environment = environmentTexture
 scene.backgroundBlurriness = 0
 
 const rapierDebugRenderer = new RapierDebugRenderer(scene, world)
@@ -67,7 +69,7 @@ window.addEventListener('resize', () => {
 
 //LIGHTS
 // #region LIGHTS
-const light1 = new THREE.DirectionalLight( 0xfff9d8, 3 );
+const light1 = new THREE.DirectionalLight( 0xfff9d8, 1 );
 light1.position.z += 1000;
 light1.position.y += 300;
 light1.castShadow = true;
@@ -236,7 +238,7 @@ dragHandleControls.addEventListener( 'drag', function ( event ) {
 });
 // #endregion MANGO CONTROLS
 
-dragHandleControls.addEventListener( 'dragend', function ( event ) {
+dragHandleControls.addEventListener( 'dragend', function (  ) {
   dynamicBodies[0][1].setTranslation(new RAPIER.Vector3(0, 1.22, 0.2998),true) 
   dynamicBodies[0][1].setRotation({x:mango.quaternion.x,y:mango.quaternion.y,z:mango.quaternion.z,w:mango.quaternion.w},true)
 })
@@ -249,22 +251,25 @@ const dragCoinControls = new DragControls( [coin], camera, renderer.domElement )
 let isCoinDragged = false
 dragCoinControls.addEventListener( 'dragstart', function (event) {
   isCoinDragged = true
-  event.object.position.z = 0.2998
+  event.object.position.z = 0.2999
   event.object.rotation.x = 0
   event.object.rotation.y= 0
   event.object.rotateX(Math.PI/2)
 })
 dragCoinControls.addEventListener( 'drag', function (event) {
-  event.object.position.z = 0.2998
+  event.object.position.z = 0.2999
 })
 dragCoinControls.addEventListener( 'dragend', function ( event ) {
-  event.object.position.z = 0.2998
+  event.object.position.z = 0.2999
   isCoinDragged = false
   dynamicBodies[1][1].setTranslation(new RAPIER.Vector3(event.object.position.x,event.object.position.y,event.object.position.z),true) 
   //MUST SET DIRECTION FROM WHEREVER CAMERA IS LOOKING
   //resulting vector should substract "cacharro" pointing vector ( +Z or (0,0,1)) from camera pointing vector, so mouseMovementXY is applied NOT only on XY, which is current behavior
   dynamicBodies[1][1].setLinvel(new RAPIER.Vector3(mouseMovement.x/10, -mouseMovement.y/8, 0),true)
-  // dynamicBodies[1][1].setAngvsel(new RAPIER.Vector3(30*Math.random()-15,30*Math.random()-15,30*Math.random()-15),true)
+
+  dynamicBodies[1][1].setRotation(event.object.quaternion,true)
+  dynamicBodies[1][1].setAngvel(new RAPIER.Vector3(30*Math.random()-15,30*Math.random()-15,30*Math.random()-15),true)
+  
 })
 // #endregion COIN CONTROLS
 // #endregion CONTROLS
