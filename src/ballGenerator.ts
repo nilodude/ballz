@@ -19,7 +19,7 @@ async function createBallMesh(ballRadius:number){
 
 async function createBallBody(world: RAPIER.World, ballRadius: number,position: THREE.Vector3){     
       const ballBody = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(position.x, position.y, position.z).setCanSleep(true))
-      const ballShape = RAPIER.ColliderDesc.ball(ballRadius).setMass(10).setRestitution(1.5)
+      const ballShape = RAPIER.ColliderDesc.ball(ballRadius).setMass(10).setRestitution(1.3)
       world.createCollider(ballShape, ballBody)
       return ballBody
 }

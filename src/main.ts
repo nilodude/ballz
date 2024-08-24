@@ -347,9 +347,9 @@ function animate() {
       dynamicBodies[i][0].position.copy(dynamicBodies[i][1].translation())
       dynamicBodies[i][0].quaternion.copy(dynamicBodies[i][1].rotation())
     }
-    dynamicBodies[i][1].sleep()  //comment this line to make balls stop in the air
+    // dynamicBodies[i][1].sleep()  //comment this line to make balls stop in the air
   }
-  rapierDebugRenderer.update()
+  // rapierDebugRenderer.update()
   flyControls.update( delta );
   renderer.render(scene, camera)
   stats.update()
