@@ -199,7 +199,7 @@ dynamicBodies.push([coin, coinBody])
 //BALLZ
 // #region BALLZ
 const ballRadius = 0.075
-const ballNumber = 5;
+const ballNumber = 3;
 // let ball = await Ballz.createBallMesh(ballRadius)
 // scene.add( ball );
 
@@ -207,7 +207,7 @@ const ballNumber = 5;
 // dynamicBodies.push([ball, ballBody])
 
 for (let i of [...Array(ballNumber).keys()]){
-  let ball = await Ballz.addNewBall(scene,world,ballRadius,new THREE.Vector3(-i/20,2.33+i/20,0))
+  let ball = await Ballz.addNewBall(scene,world,ballRadius,new THREE.Vector3(0,2.33+i/3,0))
   dynamicBodies.push(ball)
 }
 
