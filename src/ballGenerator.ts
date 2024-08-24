@@ -11,9 +11,9 @@ async function createBallMesh(ballRadius:number){
       const ballGeometry = new THREE.SphereGeometry(ballRadius, 10, 10); 
       const ball = new THREE.Mesh(ballGeometry, ballMaterial)
       ball.castShadow = true
-      ball.position.x = 1
-      ball.position.y = 1
-      ball.position.z = 1
+    //   ball.position.x = 1
+    //   ball.position.y = 1
+    //   ball.position.z = 1
       return ball
 }
 
