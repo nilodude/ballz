@@ -47,9 +47,15 @@ mango.rotation.z -= Math.PI/2
 //CAMERA & RENDERER
 // #region CAMERA & RENDERER
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
-camera.position.x = 0.75
-camera.position.y = 1.3
-camera.position.z = 2.3
+// camera.position.x = 0.75
+// camera.position.y = 1.3
+// camera.position.z = 2.3
+
+//looking how balls fall inside cacharro
+camera.position.x = 0.53
+camera.position.y = 2.3
+camera.position.z = 0.5
+
 
 //RENDERER
 const renderer = new THREE.WebGLRenderer()
@@ -95,7 +101,6 @@ light2.shadow.camera.far = 10000;
 
 
 
-//GUI & STATS (FPS)
 // #region GUI & STATS
 const stats = new Stats()
 document.body.appendChild(stats.dom)
@@ -118,9 +123,21 @@ light2Folder.add(light2.position, 'z', -10000,10000)
 // #endregion GUI & STATS
 
 
+//#region BOLA COLLIDER
+const bolaBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(0,bola.children[0].position.y,0))
+bola.updateMatrixWorld(true) // ensure world matrix is up to date
+const bolaMesh = bola.children[0] as THREE.Mesh
+const bolapoints = new Float32Array(bolaMesh.geometry.attributes.position.array)
+const bolaindices = new Uint32Array((bolaMesh.geometry.index as THREE.BufferAttribute).array)
+const bolaShape = (RAPIER.ColliderDesc.trimesh(new Float32Array(bolapoints),new Uint32Array(bolaindices))as RAPIER.ColliderDesc).setMass(12)
+world.createCollider(bolaShape,bolaBody)
+//#endregion
 
 
-//CACHARRO COLLIDER
+
+
+
+
 // #region CACHARRO COLLIDER
 const cacharroBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed())
 cacharro.updateMatrixWorld(true) // ensure world matrix is up to date
@@ -140,7 +157,11 @@ const cacharroShape1 = (RAPIER.ColliderDesc.trimesh(new Float32Array(points1),ne
 world.createCollider(cacharroShape1,cacharroBody)
 
 // #endregion
-//MANGO COLLIDER
+
+
+
+
+
 // #region MANGO COLLIDER
 //MUST ADD A JOINT BETWEEN cacharroMesh and cacharroSHape1(metal) SO GRAVITY WONT PULL DOWN WHEN TOUCHED
 const mangoBody = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 1.22, mango.children[0].position.z ).setCanSleep(true))
@@ -155,7 +176,8 @@ world.createCollider(mangoShape,mangoBody)
 dynamicBodies.push([mango, mangoBody])
 // #endregion
 
-//FLOOR 
+
+
 // #region FLOOR
 const floorMaterial = new THREE.MeshPhysicalMaterial({
   color: new THREE.Color(0xbabaca),
@@ -173,7 +195,8 @@ world.createCollider(floorShape, floorBody)
 
 
 
-//COIN 
+
+
 // #region COIN 
 const coinMaterial = new THREE.MeshPhongMaterial({
   color: new THREE.Color(0xffffff),
@@ -199,22 +222,30 @@ dynamicBodies.push([coin, coinBody])
 //BALLZ
 // #region BALLZ
 const ballRadius = 0.075
-const ballNumber = 3;
+const numBallz = 6;
 // let ball = await Ballz.createBallMesh(ballRadius)
 // scene.add( ball );
 
 // let ballBody = await Ballz.createBallBody(world, ballRadius)
 // dynamicBodies.push([ball, ballBody])
-
-for (let i of [...Array(ballNumber).keys()]){
-  let ball = await Ballz.addNewBall(scene,world,ballRadius,new THREE.Vector3(0,2.33+i/3,0))
+const scale = 20
+for(let i= 0; i<=numBallz; i++){
+  const position = new THREE.Vector3(
+    i/scale* Math.cos(i),
+    2.33-i/9,
+    i/scale* Math.sin(i),
+  )
+  let ball = await Ballz.addNewBall(scene,world,ballRadius,position)
   dynamicBodies.push(ball)
 }
 
 
 // dynamicBodies.push([ballz[0], ballz[1]])
 // #endregion BALLZ
-//CONTROLS
+
+
+
+
 // #region CONTROLS
 let orbitControls = new OrbitControls(camera, renderer.domElement)
 orbitControls.enableRotate = false
@@ -254,12 +285,13 @@ dragHandleControls.addEventListener( 'drag', function ( event ) {
     //need to detect if mouse is left or right to the rotation Z axis, and change the sign of each X, Y contribution
   
 });
-// #endregion MANGO CONTROLS
-
 dragHandleControls.addEventListener( 'dragend', function (  ) {
   dynamicBodies[0][1].setTranslation(new RAPIER.Vector3(0, 1.22, 0.2998),true) 
   dynamicBodies[0][1].setRotation({x:mango.quaternion.x,y:mango.quaternion.y,z:mango.quaternion.z,w:mango.quaternion.w},true)
 })
+// #endregion MANGO CONTROLS
+
+
 
 
 
@@ -292,6 +324,11 @@ dragCoinControls.addEventListener( 'dragend', function ( event ) {
 // #endregion COIN CONTROLS
 // #endregion CONTROLS
 
+
+
+
+
+
 //ANIMATION LOOP
 const clock = new THREE.Clock()
 let delta = 0
@@ -318,8 +355,9 @@ function animate() {
       dynamicBodies[i][0].position.copy(dynamicBodies[i][1].translation())
       dynamicBodies[i][0].quaternion.copy(dynamicBodies[i][1].rotation())
     }
+    // dynamicBodies[i][1].sleep()  //comment this line to make balls stop in the air
   }
-  // rapierDebugRenderer.update()
+  rapierDebugRenderer.update()
   flyControls.update( delta );
   renderer.render(scene, camera)
   stats.update()
