@@ -222,13 +222,13 @@ dynamicBodies.push([coin, coinBody])
 //BALLZ
 // #region BALLZ
 const ballRadius = 0.075
-const numBallz = 6;
-const scale = 20
-for(let i= 0; i<=numBallz; i++){
+const numBallz = 20;
+const scale = ballRadius/2
+for(let i= -numBallz/2; i<=numBallz/2; i++){
   const position = new THREE.Vector3(
-    i/scale* Math.cos(i),
-    2.33-i/9,
-    i/scale* Math.sin(i),
+    i*scale* Math.cos(i*Math.PI/4)*Math.sin(i*Math.PI/4),
+    2-i*scale*Math.sin(i*Math.PI/4)*Math.sin(i*Math.PI/4),
+    i*scale* Math.cos(i*Math.PI/4),
   )
   let ball = await Ballz.addNewBall(scene,world,ballRadius,position)
   dynamicBodies.push(ball)
@@ -347,7 +347,7 @@ function animate() {
       dynamicBodies[i][0].position.copy(dynamicBodies[i][1].translation())
       dynamicBodies[i][0].quaternion.copy(dynamicBodies[i][1].rotation())
     }
-    // dynamicBodies[i][1].sleep()  //comment this line to make balls stop in the air
+    dynamicBodies[i][1].sleep()  //comment this line to make balls stop in the air
   }
   rapierDebugRenderer.update()
   flyControls.update( delta );
