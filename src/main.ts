@@ -6,6 +6,7 @@ import { DragControls } from 'three/addons/controls/DragControls.js';
 import Stats from 'three/addons/libs/stats.module.js'
 import { GUI } from 'dat.gui'
 import * as Loader from '../src/loader'
+import * as Ballz from '../src/ballGenerator'
 import RAPIER from '@dimforge/rapier3d-compat'
 import { RapierDebugRenderer } from '../src/debugRenderer'
 
@@ -175,7 +176,7 @@ world.createCollider(floorShape, floorBody)
 //COIN 
 // #region COIN 
 const coinMaterial = new THREE.MeshPhongMaterial({
-  color: new THREE.Color(0xb38f00),
+  color: new THREE.Color(0xffffff),
   side: THREE.DoubleSide
 })
 const coinGeometry = new THREE.CylinderGeometry( 0.02, 0.02, 0.005, 16 ); 
@@ -195,7 +196,24 @@ dynamicBodies.push([coin, coinBody])
 // #endregion COIN
 
 
+//BALLZ
+// #region BALLZ
+const ballRadius = 0.075
+const ballNumber = 5;
+// let ball = await Ballz.createBallMesh(ballRadius)
+// scene.add( ball );
 
+// let ballBody = await Ballz.createBallBody(world, ballRadius)
+// dynamicBodies.push([ball, ballBody])
+
+for (let i of [...Array(ballNumber).keys()]){
+  let ball = await Ballz.addNewBall(scene,world,ballRadius,new THREE.Vector3(-i/20,2.33+i/20,0))
+  dynamicBodies.push(ball)
+}
+
+
+// dynamicBodies.push([ballz[0], ballz[1]])
+// #endregion BALLZ
 //CONTROLS
 // #region CONTROLS
 let orbitControls = new OrbitControls(camera, renderer.domElement)
@@ -290,16 +308,18 @@ function animate() {
   for (let i = 0, n = dynamicBodies.length; i < n; i++) {
     
     if(isCoinDragged){
-      dynamicBodies[i][1].sleep()
-      
+      dynamicBodies[1][1].sleep()
+      if(i != 1){
+        dynamicBodies[i][0].position.copy(dynamicBodies[i][1].translation())
+        dynamicBodies[i][0].quaternion.copy(dynamicBodies[i][1].rotation())
+      }
     }else{
-      dynamicBodies[i][1].wakeUp()
+      dynamicBodies[1][1].wakeUp()
       dynamicBodies[i][0].position.copy(dynamicBodies[i][1].translation())
       dynamicBodies[i][0].quaternion.copy(dynamicBodies[i][1].rotation())
     }
-    
   }
-  rapierDebugRenderer.update()
+  // rapierDebugRenderer.update()
   flyControls.update( delta );
   renderer.render(scene, camera)
   stats.update()
