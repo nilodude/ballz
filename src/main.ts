@@ -52,9 +52,9 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 // camera.position.z = 2.3
 
 //looking how balls fall inside cacharro
-camera.position.x = 0.53
+camera.position.x = 1.63
 camera.position.y = 2.3
-camera.position.z = 0.5
+camera.position.z = 0.97
 
 
 //RENDERER
@@ -230,12 +230,13 @@ for(let i= -numBallz/2; i<=numBallz/2; i++){
     2-i*scale*Math.sin(i*Math.PI/8)*Math.sin(i*Math.PI/8),
     i*scale* Math.cos(i*Math.PI/8),
   )
-  let material = new THREE.MeshPhysicalMaterial()
-  material  = structuredClone((bola.children[0] as THREE.Mesh).material as THREE.MeshPhysicalMaterial)
-  material.roughness = Math.random()
+  const bolaMaterial  = (bola.children[0] as THREE.Mesh).material as THREE.MeshPhysicalMaterial
+  let material = bolaMaterial.clone()
+  material.roughness = Math.random()+0.01
   let ball = await Ballz.addNewBall(scene,world,ballRadius,position, material)
   dynamicBodies.push(ball)
 }
+console.log(dynamicBodies)
 // #endregion BALLZ
 
 
@@ -308,8 +309,9 @@ dragCoinControls.addEventListener( 'dragend', function ( event ) {
   event.object.position.z = 0.2999
   isCoinDragged = false
   dynamicBodies[1][1].setTranslation(new RAPIER.Vector3(event.object.position.x,event.object.position.y,event.object.position.z),true) 
-  //MUST SET DIRECTION FROM WHEREVER CAMERA IS LOOKING
+  //MUST SET DIRECTION FROM WHEREVER CAMERA IS LOOKING 
   //resulting vector should substract "cacharro" pointing vector ( +Z or (0,0,1)) from camera pointing vector, so mouseMovementXY is applied NOT only on XY, which is current behavior
+  // should try addScaledVector
   dynamicBodies[1][1].setLinvel(new RAPIER.Vector3(mouseMovement.x/10, -mouseMovement.y/8, 0),true)
 
   dynamicBodies[1][1].setRotation(event.object.quaternion,true)
