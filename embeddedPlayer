@@ -1,0 +1,16 @@
+<iframe style="border: 0; width: 350px; height: 470px;" src="https://bandcamp.com/EmbeddedPlayer/album=1015150176/size=large/bgcol=333333/linkcol=9a64ff/tracklist=false/transparent=true/" seamless><a href="https://nilodude.bandcamp.com/album/bounded-input-bouncing-output-ind005">Bounded Input Bouncing Output [IND005] by Nilo Dude</a></iframe>
+
+
+bandcamp scraper:
+
+
+var bandcampScraper = require("bandcamp-scraper")
+
+const albumUrl = 'https://nilodude.bandcamp.com/album/bounded-input-bouncing-output-ind005'
+bandcampScraper.getAlbumInfo(albumUrl, function (error, albumInfo) {
+  if (error) {
+    console.log(error)
+  } else {
+    console.log(albumInfo.raw.trackinfo[0].file['mp3-128'])
+  }
+})

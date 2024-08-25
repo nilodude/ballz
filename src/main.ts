@@ -221,16 +221,19 @@ dynamicBodies.push([coin, coinBody])
 
 //BALLZ
 // #region BALLZ
-const ballRadius = 0.075
-const numBallz = 20;
+const ballRadius = 0.09
+const numBallz = 30;
 const scale = ballRadius/2
 for(let i= -numBallz/2; i<=numBallz/2; i++){
   const position = new THREE.Vector3(
-    i*scale* Math.cos(i*Math.PI/4)*Math.sin(i*Math.PI/4),
-    2-i*scale*Math.sin(i*Math.PI/4)*Math.sin(i*Math.PI/4),
-    i*scale* Math.cos(i*Math.PI/4),
+    i*scale* Math.cos(i*Math.PI/8)*Math.sin(i*Math.PI/8),
+    2-i*scale*Math.sin(i*Math.PI/8)*Math.sin(i*Math.PI/8),
+    i*scale* Math.cos(i*Math.PI/8),
   )
-  let ball = await Ballz.addNewBall(scene,world,ballRadius,position)
+  let material = new THREE.MeshPhysicalMaterial()
+  material  = structuredClone((bola.children[0] as THREE.Mesh).material as THREE.MeshPhysicalMaterial)
+  material.roughness = Math.random()
+  let ball = await Ballz.addNewBall(scene,world,ballRadius,position, material)
   dynamicBodies.push(ball)
 }
 // #endregion BALLZ

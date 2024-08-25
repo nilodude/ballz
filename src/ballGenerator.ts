@@ -2,8 +2,8 @@ import * as THREE from 'three'
 import RAPIER from '@dimforge/rapier3d-compat'
 
 
-async function createBallMesh(ballRadius:number){
-    const ballMaterial = new THREE.MeshPhongMaterial({
+async function createBallMesh(ballRadius:number, material: THREE.Material){
+    const ballMaterial = material || new THREE.MeshPhongMaterial({
         color: new THREE.Color(0xffffff),
         side: THREE.DoubleSide
       })
@@ -19,13 +19,13 @@ async function createBallMesh(ballRadius:number){
 
 async function createBallBody(world: RAPIER.World, ballRadius: number,position: THREE.Vector3){     
       const ballBody = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(position.x, position.y, position.z).setCanSleep(true))
-      const ballShape = RAPIER.ColliderDesc.ball(ballRadius).setMass(10).setRestitution(1.3)
+      const ballShape = RAPIER.ColliderDesc.ball(ballRadius).setMass(10).setRestitution(0.75)
       world.createCollider(ballShape, ballBody)
       return ballBody
 }
 
-async function addNewBall( scene: THREE.Scene,world: RAPIER.World,ballRadius: number, position: THREE.Vector3){
-    let ball = await createBallMesh(ballRadius) as THREE.Object3D
+async function addNewBall( scene: THREE.Scene,world: RAPIER.World,ballRadius: number, position: THREE.Vector3, material:  THREE.Material ){
+    let ball = await createBallMesh(ballRadius, material) as THREE.Object3D
     scene.add( ball );
 
     let ballBody = await createBallBody(world, ballRadius, position) as RAPIER.RigidBody
