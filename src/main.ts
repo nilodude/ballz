@@ -74,6 +74,24 @@ window.addEventListener('resize', () => {
 
 
 
+// #region AUDIO
+const listener = new THREE.AudioListener();
+camera.add( listener );
+
+const sound = new THREE.Audio( listener );
+
+const audioLoader = new THREE.AudioLoader();
+audioLoader.load( 'temita.mp3', function( buffer ) {
+	sound.setBuffer( buffer );
+	sound.setLoop( true );
+	sound.setVolume( 0.9 );
+  sound.autoplay = true
+  sound.hasPlaybackControl = true
+	sound.play();
+});
+//#endregion 
+
+
 
 // #region LIGHTS
 const light1 = new THREE.DirectionalLight( 0xfff9d8, 1 );
@@ -222,7 +240,7 @@ dynamicBodies.push([coin, coinBody])
 //BALLZ
 // #region BALLZ
 const ballRadius = 0.09
-const numBallz = 100;
+const numBallz = 150;
 const scale = ballRadius/2
 const angle = Math.PI/16
 for(let i= 0; i<=numBallz; i++){
@@ -239,7 +257,7 @@ for(let i= 0; i<=numBallz; i++){
 
   dynamicBodies.push(ball)
 }
-console.log(dynamicBodies)
+// console.log(dynamicBodies)
 // #endregion BALLZ
 
 
@@ -249,7 +267,7 @@ console.log(dynamicBodies)
 let orbitControls = new OrbitControls(camera, renderer.domElement)
 orbitControls.enableRotate = false
 orbitControls.autoRotate = true
-
+orbitControls.autoRotateSpeed= 0.3
 let flyControls = new FlyControls( camera, renderer.domElement );
 flyControls.movementSpeed = 1.7;
 flyControls.domElement = renderer.domElement;
@@ -276,7 +294,7 @@ dragHandleControls.addEventListener( 'dragstart', function ( event ) {
 })
 
 dragHandleControls.addEventListener( 'drag', function ( event ) {
-	console.log(event.object.rotation.z)
+	console.log(event.object.rotation.z*2*Math.PI)
   event.object.rotation.x = 0
   event.object.rotation.y= 0
   event.object.rotation.z -= (Math.abs(mouseMovement.x^2) + Math.abs(mouseMovement.y^2))/200
@@ -329,23 +347,6 @@ dragCoinControls.addEventListener( 'dragend', function ( event ) {
 
 
 
-// #region AUDIO
-const listener = new THREE.AudioListener();
-camera.add( listener );
-
-// create a global audio source
-const sound = new THREE.Audio( listener );
-
-// load a sound and set it as the Audio object's buffer
-const audioLoader = new THREE.AudioLoader();
-audioLoader.load( 'temita.mp3', function( buffer ) {
-	sound.setBuffer( buffer );
-	sound.setLoop( true );
-	sound.setVolume( 0.5 );
-  sound.autoplay = true
-	sound.play();
-});
-//#endregion 
 
 
 //ANIMATION LOOP
