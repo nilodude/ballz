@@ -27,7 +27,7 @@ scene.backgroundBlurriness = 0
 
 const rapierDebugRenderer = new RapierDebugRenderer(scene, world)
 
-//LOAD MODELS
+
 //#region LOAD MODELS
 let bola = new THREE.Group<THREE.Object3DEventMap>()
 let cacharro = new THREE.Group<THREE.Object3DEventMap>()
@@ -44,7 +44,7 @@ mango.rotation.z -= Math.PI/2
 
 
 
-//CAMERA & RENDERER
+
 // #region CAMERA & RENDERER
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
 // camera.position.x = 0.75
@@ -54,7 +54,7 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 //looking how balls fall inside cacharro
 camera.position.x = 1.63
 camera.position.y = 2.3
-camera.position.z = 0.97
+camera.position.z = 5.97
 
 
 //RENDERER
@@ -74,7 +74,7 @@ window.addEventListener('resize', () => {
 
 
 
-//LIGHTS
+
 // #region LIGHTS
 const light1 = new THREE.DirectionalLight( 0xfff9d8, 1 );
 light1.position.z += 1000;
@@ -186,7 +186,7 @@ const floorMaterial = new THREE.MeshPhysicalMaterial({
 const floor = new THREE.Mesh(new THREE.PlaneGeometry(20,20), floorMaterial)
 floor.rotateX(-Math.PI/2)
 floor.receiveShadow = true
-scene.add(floor)
+// scesaaaaaaaaaaaane.add(floor)
 //FLOOR COLLIDER
 const floorBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(0, -0.0999, 0))
 const floorShape = RAPIER.ColliderDesc.cuboid(10, 0.1, 10)
@@ -213,7 +213,7 @@ coin.rotateX(Math.PI/2)
 scene.add( coin );
 //COLLIDER
 const coinBody = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(0.5, 1, 0.5).setCanSleep(true))
-const coinShape = RAPIER.ColliderDesc.cylinder(0.0025, 0.02).setMass(5).setRestitution(1)
+const coinShape = RAPIER.ColliderDesc.cylinder(0.0025, 0.02).setMass(5).setRestitution(0.85)
 world.createCollider(coinShape, coinBody)
 dynamicBodies.push([coin, coinBody])
 // #endregion COIN
@@ -222,18 +222,21 @@ dynamicBodies.push([coin, coinBody])
 //BALLZ
 // #region BALLZ
 const ballRadius = 0.09
-const numBallz = 30;
+const numBallz = 100;
 const scale = ballRadius/2
-for(let i= -numBallz/2; i<=numBallz/2; i++){
+const angle = Math.PI/16
+for(let i= 0; i<=numBallz; i++){
   const position = new THREE.Vector3(
-    i*scale* Math.cos(i*Math.PI/8)*Math.sin(i*Math.PI/8),
-    2-i*scale*Math.sin(i*Math.PI/8)*Math.sin(i*Math.PI/8),
-    i*scale* Math.cos(i*Math.PI/8),
+    i*scale* Math.cos(i*angle)*Math.sin(i*angle),
+    2.3-i*scale*Math.sin(i*angle)*Math.sin(i*angle),
+    i*scale* Math.cos(i*angle),
   )
-  const bolaMaterial  = (bola.children[0] as THREE.Mesh).material as THREE.MeshPhysicalMaterial
-  let material = bolaMaterial.clone()
-  material.roughness = Math.random()+0.01
-  let ball = await Ballz.addNewBall(scene,world,ballRadius,position, material)
+  // const bolaMaterial  = (bola.children[0] as THREE.Mesh).material as THREE.MeshPhysicalMaterial
+  // let material = bolaMaterial.clone()
+  // material.roughness = Math.max(Math.min(Math.random(),0.5),0.1)
+  // let ball = await Ballz.addNewBall(scene,world,ballRadius,position, material)
+  let ball = await Ballz.addNewBall(scene,world,ballRadius,position, new THREE.MeshPhysicalMaterial())
+
   dynamicBodies.push(ball)
 }
 console.log(dynamicBodies)
@@ -245,6 +248,7 @@ console.log(dynamicBodies)
 // #region CONTROLS
 let orbitControls = new OrbitControls(camera, renderer.domElement)
 orbitControls.enableRotate = false
+orbitControls.autoRotate = true
 
 let flyControls = new FlyControls( camera, renderer.domElement );
 flyControls.movementSpeed = 1.7;
@@ -352,9 +356,10 @@ function animate() {
       dynamicBodies[i][0].position.copy(dynamicBodies[i][1].translation())
       dynamicBodies[i][0].quaternion.copy(dynamicBodies[i][1].rotation())
     }
-    // dynamicBodies[i][1].sleep()  //comment this line to make balls stop in the air
+    dynamicBodies[i][1].sleep()  //comment this line to make balls stop in the air
   }
   // rapierDebugRenderer.update()
+  orbitControls.update(delta)
   flyControls.update( delta );
   renderer.render(scene, camera)
   stats.update()
