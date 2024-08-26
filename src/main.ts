@@ -85,9 +85,9 @@ audioLoader.load( 'temita.mp3', function( buffer ) {
 	sound.setBuffer( buffer );
 	sound.setLoop( true );
 	sound.setVolume( 0.5 );
-  // sound.autoplay = true
-  // sound.hasPlaybackControl = true
-	// sound.play();
+  sound.autoplay = true
+  sound.hasPlaybackControl = true
+	sound.play();
 });
 //#endregion 
 
