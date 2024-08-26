@@ -329,6 +329,24 @@ dragCoinControls.addEventListener( 'dragend', function ( event ) {
 
 
 
+// #region AUDIO
+const listener = new THREE.AudioListener();
+camera.add( listener );
+
+// create a global audio source
+const sound = new THREE.Audio( listener );
+
+// load a sound and set it as the Audio object's buffer
+const audioLoader = new THREE.AudioLoader();
+audioLoader.load( 'temita.mp3', function( buffer ) {
+	sound.setBuffer( buffer );
+	sound.setLoop( true );
+	sound.setVolume( 0.5 );
+  sound.autoplay = true
+	sound.play();
+});
+//#endregion 
+
 
 //ANIMATION LOOP
 const clock = new THREE.Clock()
