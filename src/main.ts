@@ -54,7 +54,7 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 //looking how balls fall inside cacharro
 camera.position.x = 1.63
 camera.position.y = 2.3
-camera.position.z = 5.97
+camera.position.z = 2.97
 
 
 //RENDERER
@@ -84,10 +84,10 @@ const audioLoader = new THREE.AudioLoader();
 audioLoader.load( 'temita.mp3', function( buffer ) {
 	sound.setBuffer( buffer );
 	sound.setLoop( true );
-	sound.setVolume( 0.9 );
-  sound.autoplay = true
-  sound.hasPlaybackControl = true
-	sound.play();
+	sound.setVolume( 0.5 );
+  // sound.autoplay = true
+  // sound.hasPlaybackControl = true
+	// sound.play();
 });
 //#endregion 
 
@@ -204,7 +204,7 @@ const floorMaterial = new THREE.MeshPhysicalMaterial({
 const floor = new THREE.Mesh(new THREE.PlaneGeometry(20,20), floorMaterial)
 floor.rotateX(-Math.PI/2)
 floor.receiveShadow = true
-// scesaaaaaaaaaaaane.add(floor)
+scene.add(floor)
 //FLOOR COLLIDER
 const floorBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(0, -0.0999, 0))
 const floorShape = RAPIER.ColliderDesc.cuboid(10, 0.1, 10)
@@ -240,20 +240,23 @@ dynamicBodies.push([coin, coinBody])
 //BALLZ
 // #region BALLZ
 const ballRadius = 0.09
-const numBallz = 150;
-const scale = ballRadius/2
-const angle = Math.PI/16
-for(let i= 0; i<=numBallz; i++){
+const numBallz = 20
+const scale = 2.5*ballRadius
+const angle = Math.PI/32
+
+//as usual, my problem is a famous problem https://en.wikipedia.org/wiki/Sphere_packing_in_a_sphere
+//as usual,my work is already done http://hydra.nat.uni-magdeburg.de/packing/cci/
+
+for(let i= -numBallz; i<=numBallz; i++){
   const position = new THREE.Vector3(
-    i*scale* Math.cos(i*angle)*Math.sin(i*angle),
-    2.3-i*scale*Math.sin(i*angle)*Math.sin(i*angle),
-    i*scale* Math.cos(i*angle),
+    scale* Math.cos(i*angle)*Math.sin(i*angle),
+    2+scale*Math.sin(i*angle)*Math.sin(i*angle),
+    scale* Math.cos(i*angle),
   )
-  // const bolaMaterial  = (bola.children[0] as THREE.Mesh).material as THREE.MeshPhysicalMaterial
-  // let material = bolaMaterial.clone()
-  // material.roughness = Math.max(Math.min(Math.random(),0.5),0.1)
-  // let ball = await Ballz.addNewBall(scene,world,ballRadius,position, material)
-  let ball = await Ballz.addNewBall(scene,world,ballRadius,position, new THREE.MeshPhysicalMaterial())
+  const bolaMaterial  = (bola.children[0] as THREE.Mesh).material as THREE.MeshPhysicalMaterial
+  let material = bolaMaterial.clone()
+  material.roughness = Math.max(Math.min(Math.random(),0.5),0.1)
+  let ball = await Ballz.addNewBall(scene,world,ballRadius,position, material)
 
   dynamicBodies.push(ball)
 }
@@ -375,7 +378,7 @@ function animate() {
       dynamicBodies[i][0].position.copy(dynamicBodies[i][1].translation())
       dynamicBodies[i][0].quaternion.copy(dynamicBodies[i][1].rotation())
     }
-    dynamicBodies[i][1].sleep()  //comment this line to make balls stop in the air
+    // dynamicBodies[i][1].sleep()  //comment this line to make balls stop in the air
   }
   // rapierDebugRenderer.update()
   orbitControls.update(delta)
