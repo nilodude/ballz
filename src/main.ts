@@ -81,7 +81,7 @@ camera.add( listener );
 const sound = new THREE.Audio( listener );
 
 const audioLoader = new THREE.AudioLoader();
-audioLoader.load( 'temita.mp3', function( buffer ) {
+audioLoader.load( 'temito.mp3', function( buffer ) {
 	sound.setBuffer( buffer );
 	sound.setLoop( true );
 	sound.setVolume( 0.5 );
@@ -239,28 +239,28 @@ dynamicBodies.push([coin, coinBody])
 
 //BALLZ
 // #region BALLZ
-const ballRadius = 0.09
-const numBallz = 20
-const scale = 2.5*ballRadius
-const angle = Math.PI/32
+const ballRadius = 0.1
+const scale = 3*ballRadius
+const angleStep = Math.PI/2.1
 
 //as usual, my problem is a famous problem https://en.wikipedia.org/wiki/Sphere_packing_in_a_sphere
 //as usual,my work is already done http://hydra.nat.uni-magdeburg.de/packing/cci/
 
-for(let i= -numBallz; i<=numBallz; i++){
-  const position = new THREE.Vector3(
-    scale* Math.cos(i*angle)*Math.sin(i*angle),
-    2+scale*Math.sin(i*angle)*Math.sin(i*angle),
-    scale* Math.cos(i*angle),
-  )
-  const bolaMaterial  = (bola.children[0] as THREE.Mesh).material as THREE.MeshPhysicalMaterial
-  let material = bolaMaterial.clone()
-  material.roughness = Math.max(Math.min(Math.random(),0.5),0.1)
-  let ball = await Ballz.addNewBall(scene,world,ballRadius,position, material)
-
-  dynamicBodies.push(ball)
+for(let theta=0; theta<2*Math.PI; theta= theta+angleStep){
+  for(let phi=0; phi<2*Math.PI; phi= phi+angleStep){
+    const position = new THREE.Vector3(
+      scale* Math.cos(theta)*Math.sin(phi),
+      2+scale*Math.sin(theta)*Math.sin(phi),
+      scale* Math.cos(theta),
+    )
+    const bolaMaterial  = (bola.children[0] as THREE.Mesh).material as THREE.MeshPhysicalMaterial
+    let material = bolaMaterial.clone()
+    material.roughness = Math.max(Math.min(Math.random(),0.7),0.1)
+    let ball = await Ballz.addNewBall(scene,world,ballRadius,position, material)
+    dynamicBodies.push(ball)
+  }
 }
-// console.log(dynamicBodies)
+console.table(dynamicBodies)
 // #endregion BALLZ
 
 
@@ -269,8 +269,8 @@ for(let i= -numBallz; i<=numBallz; i++){
 // #region CONTROLS
 let orbitControls = new OrbitControls(camera, renderer.domElement)
 orbitControls.enableRotate = false
-orbitControls.autoRotate = true
-orbitControls.autoRotateSpeed= 0.3
+// orbitControls.autoRotate = true
+// orbitControls.autoRotateSpeed= 0.3
 let flyControls = new FlyControls( camera, renderer.domElement );
 flyControls.movementSpeed = 1.7;
 flyControls.domElement = renderer.domElement;
@@ -374,14 +374,15 @@ function animate() {
         dynamicBodies[i][0].quaternion.copy(dynamicBodies[i][1].rotation())
       }
     }else{
-      dynamicBodies[1][1].wakeUp()
+      dynamicBodies[i][1].wakeUp()
       dynamicBodies[i][0].position.copy(dynamicBodies[i][1].translation())
       dynamicBodies[i][0].quaternion.copy(dynamicBodies[i][1].rotation())
+
     }
     // dynamicBodies[i][1].sleep()  //comment this line to make balls stop in the air
   }
   // rapierDebugRenderer.update()
-  orbitControls.update(delta)
+  // orbitControls.update(delta)
   flyControls.update( delta );
   renderer.render(scene, camera)
   stats.update()
