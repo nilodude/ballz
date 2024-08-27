@@ -85,9 +85,9 @@ audioLoader.load( 'temito.mp3', function( buffer ) {
 	sound.setBuffer( buffer );
 	sound.setLoop( true );
 	sound.setVolume( 0.5 );
-  sound.autoplay = true
-  sound.hasPlaybackControl = true
-	sound.play();
+  // sound.autoplay = true
+  // sound.hasPlaybackControl = true
+	// sound.play();
 });
 //#endregion 
 
@@ -241,12 +241,12 @@ dynamicBodies.push([coin, coinBody])
 // #region BALLZ
 const ballRadius = 0.1
 const scale = 3*ballRadius
-const angleStep = Math.PI/2.1
+const angleStep = Math.PI/3
 
 //as usual, my problem is a famous problem https://en.wikipedia.org/wiki/Sphere_packing_in_a_sphere
 //as usual,my work is already done http://hydra.nat.uni-magdeburg.de/packing/cci/
 
-for(let theta=0; theta<2*Math.PI; theta= theta+angleStep){
+for(let theta=Math.PI/3; theta<2*Math.PI; theta= theta+angleStep){
   for(let phi=0; phi<2*Math.PI; phi= phi+angleStep){
     const position = new THREE.Vector3(
       scale* Math.cos(theta)*Math.sin(phi),
@@ -279,7 +279,6 @@ flyControls.autoForward = false;
 flyControls.dragToLook = true;
 
 
-//MANGO CONTROLS
 // #region MANGO CONTROLS
 let mouseMovement = {x: 0, y:0}
 let mousePosition = {x: 0, y:0}
@@ -316,7 +315,6 @@ dragHandleControls.addEventListener( 'dragend', function (  ) {
 
 
 
-//COIN CONTROLS
 // #region COIN CONTROLS
 const dragCoinControls = new DragControls( [coin], camera, renderer.domElement );
 let isCoinDragged = false

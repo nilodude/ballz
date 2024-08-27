@@ -9,7 +9,7 @@ async function createBallMesh(ballRadius:number, material: THREE.MeshPhysicalMat
       })
       material.color = new THREE.Color(Math.random(),0,0)
       ballRadius = ballRadius || 0.09
-      const ballGeometry = new THREE.SphereGeometry(ballRadius, 10, 10); 
+      const ballGeometry = new THREE.SphereGeometry(ballRadius, 20, 20); 
       const ball = new THREE.Mesh(ballGeometry, ballMaterial)
       ball.castShadow = true
       return ball
@@ -17,7 +17,7 @@ async function createBallMesh(ballRadius:number, material: THREE.MeshPhysicalMat
 
 async function createBallBody(world: RAPIER.World, ballRadius: number,position: THREE.Vector3){     
       const ballBody = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(position.x, position.y, position.z).setCanSleep(true))
-      const ballShape = RAPIER.ColliderDesc.ball(ballRadius).setMass(50).setRestitution(0.65)
+      const ballShape = RAPIER.ColliderDesc.ball(ballRadius).setMass(10).setRestitution(0.65)
       world.createCollider(ballShape, ballBody)
       ballBody.sleep()
       return ballBody
