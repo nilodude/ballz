@@ -34,8 +34,8 @@ let cacharro = new THREE.Group<THREE.Object3DEventMap>()
 let mango = new THREE.Group<THREE.Object3DEventMap>()
 
 // maybe worth it to finetune MeshPhysicalMaterial to look like glass, but for that to work, scene needs ENVIRONMENT lighting setup correctly
-bola = await Loader.loadModel(scene,'bola')
-cacharro = await Loader.loadModel(scene,'cacharro')
+bola = await Loader.loadModel(scene,'bola2')
+cacharro = await Loader.loadModel(scene,'cacharro2')
 mango  = await Loader.loadModel(scene,'mango')
 
 mango.position.y += 1.22293
@@ -52,9 +52,16 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 // camera.position.z = 2.3
 
 //looking how balls fall inside cacharro
-camera.position.x = 1.63
-camera.position.y = 2.3
-camera.position.z = 2.97
+// camera.position.x = 1.63
+// camera.position.y = 2.3
+// camera.position.z = 2.97
+
+//almost floor height
+camera.position.x = 0.5
+camera.position.y = 0.5
+camera.position.z = 18
+
+
 
 
 //RENDERER
@@ -85,9 +92,9 @@ audioLoader.load( 'temito.mp3', function( buffer ) {
 	sound.setBuffer( buffer );
 	sound.setLoop( true );
 	sound.setVolume( 0.5 );
-  // sound.autoplay = true
-  // sound.hasPlaybackControl = true
-	// sound.play();
+  sound.autoplay = true
+  sound.hasPlaybackControl = true
+	sound.play();
 });
 //#endregion 
 
@@ -147,7 +154,7 @@ bola.updateMatrixWorld(true) // ensure world matrix is up to date
 const bolaMesh = bola.children[0] as THREE.Mesh
 const bolapoints = new Float32Array(bolaMesh.geometry.attributes.position.array)
 const bolaindices = new Uint32Array((bolaMesh.geometry.index as THREE.BufferAttribute).array)
-const bolaShape = (RAPIER.ColliderDesc.trimesh(new Float32Array(bolapoints),new Uint32Array(bolaindices))as RAPIER.ColliderDesc).setMass(12)
+const bolaShape = (RAPIER.ColliderDesc.trimesh(new Float32Array(bolapoints),new Uint32Array(bolaindices))as RAPIER.ColliderDesc).setMass(12).setFriction(0)
 world.createCollider(bolaShape,bolaBody)
 //#endregion
 
@@ -171,7 +178,7 @@ world.createCollider(cacharroShape,cacharroBody)
 const cacharroMesh1 = cacharro.children[0].children[1] as THREE.Mesh
 const points1 = new Float32Array(cacharroMesh1.geometry.attributes.position.array)
 const indices1 = new Uint32Array((cacharroMesh1.geometry.index as THREE.BufferAttribute).array)
-const cacharroShape1 = (RAPIER.ColliderDesc.trimesh(new Float32Array(points1),new Uint32Array(indices1))as RAPIER.ColliderDesc).setMass(12)
+const cacharroShape1 = (RAPIER.ColliderDesc.trimesh(new Float32Array(points1),new Uint32Array(indices1))as RAPIER.ColliderDesc).setMass(12).setFriction(0)
 world.createCollider(cacharroShape1,cacharroBody)
 
 // #endregion
@@ -243,9 +250,6 @@ const ballRadius = 0.09
 const scale = 3*ballRadius
 const angleStep = Math.PI/3
 
-//as usual, my problem is a famous problem https://en.wikipedia.org/wiki/Sphere_packing_in_a_sphere
-//as usual,my work is already done http://hydra.nat.uni-magdeburg.de/packing/cci/
-
 for(let theta=Math.PI/3; theta<2*Math.PI; theta= theta+angleStep){
   for(let phi=0; phi<2*Math.PI; phi= phi+angleStep){
     const position = new THREE.Vector3(
@@ -255,12 +259,11 @@ for(let theta=Math.PI/3; theta<2*Math.PI; theta= theta+angleStep){
     )
     const bolaMaterial  = (bola.children[0] as THREE.Mesh).material as THREE.MeshPhysicalMaterial
     let material = bolaMaterial.clone()
-    material.roughness = Math.max(Math.min(Math.random(),0.7),0.1)
+    material.roughness = Math.random()*0.6+0.1
     let ball = await Ballz.addNewBall(scene,world,ballRadius,position, material)
     dynamicBodies.push(ball)
   }
 }
-console.table(dynamicBodies)
 // #endregion BALLZ
 
 
@@ -379,6 +382,7 @@ function animate() {
     }
     // dynamicBodies[i][1].sleep()  //comment this line to make balls stop in the air
   }
+  camera.position.lerp(new THREE.Vector3(0.5,0.5,3), delta/17)
   // rapierDebugRenderer.update()
   // orbitControls.update(delta)
   flyControls.update( delta );
