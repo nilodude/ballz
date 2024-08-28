@@ -1,0 +1,10 @@
+28/08/24:
+    -DETECTING COIN INSERT:
+        1. when coin is dropped, coin must STOP MOVING right on top of handle while its visible through the metal vertical slot
+        2. rotation of handle must make coin fall (-Y direction)
+        3. once coin is not visible, make it dissapear.
+        4. open gate
+            -gate & gate physics dont exist yet
+    
+    -GATE:
+        -probably just as handle physics, it will be easier to fake (program manually) the displacement instead of real physics, just maybe
