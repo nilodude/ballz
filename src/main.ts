@@ -239,7 +239,7 @@ dynamicBodies.push([coin, coinBody])
 
 //BALLZ
 // #region BALLZ
-const ballRadius = 0.1
+const ballRadius = 0.09
 const scale = 3*ballRadius
 const angleStep = Math.PI/3
 
