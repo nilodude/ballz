@@ -59,7 +59,7 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 //almost floor height
 camera.position.x = 0.5
 camera.position.y = 0.5
-camera.position.z = 18
+camera.position.z = 8
 
 
 
@@ -204,17 +204,18 @@ dynamicBodies.push([mango, mangoBody])
 
 
 // #region FLOOR
+const floorSize = {x:10, z:10}
 const floorMaterial = new THREE.MeshPhysicalMaterial({
   color: new THREE.Color(0xbabaca),
   side: THREE.DoubleSide
 })
-const floor = new THREE.Mesh(new THREE.PlaneGeometry(20,20), floorMaterial)
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(floorSize.x,floorSize.z), floorMaterial)
 floor.rotateX(-Math.PI/2)
 floor.receiveShadow = true
 scene.add(floor)
 //FLOOR COLLIDER
 const floorBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(0, -0.0999, 0))
-const floorShape = RAPIER.ColliderDesc.cuboid(10, 0.1, 10)
+const floorShape = RAPIER.ColliderDesc.cuboid(floorSize.x/2, 0.1, floorSize.z/2)
 world.createCollider(floorShape, floorBody)
 // #endregion FLOOR
 
