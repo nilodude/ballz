@@ -7,7 +7,7 @@ async function createBallMesh(ballRadius:number, material: THREE.MeshPhysicalMat
         color: new THREE.Color(Math.random()*255,Math.random()*255,Math.random()*255),
         side: THREE.DoubleSide
       })
-      material.color = new THREE.Color(Math.random(),0,0)
+      material.color = new THREE.Color(Math.random(),0,Math.random())
       ballRadius = ballRadius || 0.09
       const ballGeometry = new THREE.SphereGeometry(ballRadius, 20, 20); 
       const ball = new THREE.Mesh(ballGeometry, ballMaterial)

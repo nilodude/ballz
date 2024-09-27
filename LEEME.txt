@@ -8,3 +8,6 @@
     
     -GATE:
         -probably just as handle physics, it will be easier to fake (program manually) the displacement instead of real physics, just maybe
+
+
+IMPORTANTE: cambiar sphereGEometry por icosahedronGeometryyyyyyy!!!

@@ -59,7 +59,7 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 //almost floor height
 camera.position.x = 0.5
 camera.position.y = 0.5
-camera.position.z = 8
+camera.position.z = 3
 
 
 
@@ -85,17 +85,17 @@ window.addEventListener('resize', () => {
 const listener = new THREE.AudioListener();
 camera.add( listener );
 
-const sound = new THREE.Audio( listener );
+// const sound = new THREE.Audio( listener );
 
-const audioLoader = new THREE.AudioLoader();
-audioLoader.load( 'temito.mp3', function( buffer ) {
-	sound.setBuffer( buffer );
-	sound.setLoop( true );
-	sound.setVolume( 0.5 );
-  sound.autoplay = true
-  sound.hasPlaybackControl = true
-	sound.play();
-});
+// const audioLoader = new THREE.AudioLoader();
+// audioLoader.load( 'temito.mp3', function( buffer ) {
+// 	// sound.setBuffer( buffer );
+// 	// sound.setLoop( true );
+// 	// sound.setVolume( 0.5 );
+//   // sound.autoplay = true
+//   // sound.hasPlaybackControl = true
+// 	// sound.play();
+// });
 //#endregion 
 
 
