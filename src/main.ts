@@ -12,7 +12,7 @@ import { RapierDebugRenderer } from '../src/debugRenderer'
 
 await RAPIER.init() // This line is only needed if using the compat version
 
-const gravity = new RAPIER.Vector3(0.0, -9.81, 0.0)
+const gravity = new RAPIER.Vector3(0.0, 0.0, 0.0)
 const world = new RAPIER.World(gravity)
 const dynamicBodies: [THREE.Object3D, RAPIER.RigidBody][] = []
 
@@ -29,17 +29,17 @@ const rapierDebugRenderer = new RapierDebugRenderer(scene, world)
 
 
 //#region LOAD MODELS
-let bola = new THREE.Group<THREE.Object3DEventMap>()
-let cacharro = new THREE.Group<THREE.Object3DEventMap>()
-let mango = new THREE.Group<THREE.Object3DEventMap>()
+// let bola = new THREE.Group<THREE.Object3DEventMap>()
+// let cacharro = new THREE.Group<THREE.Object3DEventMap>()
+// let mango = new THREE.Group<THREE.Object3DEventMap>()
 
 // maybe worth it to finetune MeshPhysicalMaterial to look like glass, but for that to work, scene needs ENVIRONMENT lighting setup correctly
-bola = await Loader.loadModel(scene,'bola2')
-cacharro = await Loader.loadModel(scene,'cacharro2')
-mango  = await Loader.loadModel(scene,'mango')
+// bola = await Loader.loadModel(scene,'bola2')
+// cacharro = await Loader.loadModel(scene,'cacharro2')
+// mango  = await Loader.loadModel(scene,'mango')
 
-mango.position.y += 1.22293
-mango.rotation.z -= Math.PI/2
+// mango.position.y += 1.22293
+// mango.rotation.z -= Math.PI/2
 //#endregion LOAD MODELS
 
 
@@ -149,13 +149,13 @@ light2Folder.add(light2.position, 'z', -10000,10000)
 
 
 //#region BOLA COLLIDER
-const bolaBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(0,bola.children[0].position.y,0))
-bola.updateMatrixWorld(true) // ensure world matrix is up to date
-const bolaMesh = bola.children[0] as THREE.Mesh
-const bolapoints = new Float32Array(bolaMesh.geometry.attributes.position.array)
-const bolaindices = new Uint32Array((bolaMesh.geometry.index as THREE.BufferAttribute).array)
-const bolaShape = (RAPIER.ColliderDesc.trimesh(new Float32Array(bolapoints),new Uint32Array(bolaindices))as RAPIER.ColliderDesc).setMass(12).setFriction(0)
-world.createCollider(bolaShape,bolaBody)
+// const bolaBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(0,bola.children[0].position.y,0))
+// bola.updateMatrixWorld(true) // ensure world matrix is up to date
+// const bolaMesh = bola.children[0] as THREE.Mesh
+// const bolapoints = new Float32Array(bolaMesh.geometry.attributes.position.array)
+// const bolaindices = new Uint32Array((bolaMesh.geometry.index as THREE.BufferAttribute).array)
+// const bolaShape = (RAPIER.ColliderDesc.trimesh(new Float32Array(bolapoints),new Uint32Array(bolaindices))as RAPIER.ColliderDesc).setMass(12).setFriction(0)
+// world.createCollider(bolaShape,bolaBody)
 //#endregion
 
 
@@ -164,22 +164,22 @@ world.createCollider(bolaShape,bolaBody)
 
 
 // #region CACHARRO COLLIDER
-const cacharroBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed())
-cacharro.updateMatrixWorld(true) // ensure world matrix is up to date
+// const cacharroBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed())
+// cacharro.updateMatrixWorld(true) // ensure world matrix is up to date
 
-//metal
-const cacharroMesh = cacharro.children[0].children[0] as THREE.Mesh
-const points = new Float32Array(cacharroMesh.geometry.attributes.position.array)
-const indices = new Uint32Array((cacharroMesh.geometry.index as THREE.BufferAttribute).array)
-const cacharroShape = (RAPIER.ColliderDesc.trimesh(new Float32Array(points),new Uint32Array(indices))as RAPIER.ColliderDesc).setMass(12)
-world.createCollider(cacharroShape,cacharroBody)
+// //metal
+// const cacharroMesh = cacharro.children[0].children[0] as THREE.Mesh
+// const points = new Float32Array(cacharroMesh.geometry.attributes.position.array)
+// const indices = new Uint32Array((cacharroMesh.geometry.index as THREE.BufferAttribute).array)
+// const cacharroShape = (RAPIER.ColliderDesc.trimesh(new Float32Array(points),new Uint32Array(indices))as RAPIER.ColliderDesc).setMass(12)
+// world.createCollider(cacharroShape,cacharroBody)
 
-//non metal
-const cacharroMesh1 = cacharro.children[0].children[1] as THREE.Mesh
-const points1 = new Float32Array(cacharroMesh1.geometry.attributes.position.array)
-const indices1 = new Uint32Array((cacharroMesh1.geometry.index as THREE.BufferAttribute).array)
-const cacharroShape1 = (RAPIER.ColliderDesc.trimesh(new Float32Array(points1),new Uint32Array(indices1))as RAPIER.ColliderDesc).setMass(12).setFriction(0)
-world.createCollider(cacharroShape1,cacharroBody)
+// //non metal
+// const cacharroMesh1 = cacharro.children[0].children[1] as THREE.Mesh
+// const points1 = new Float32Array(cacharroMesh1.geometry.attributes.position.array)
+// const indices1 = new Uint32Array((cacharroMesh1.geometry.index as THREE.BufferAttribute).array)
+// const cacharroShape1 = (RAPIER.ColliderDesc.trimesh(new Float32Array(points1),new Uint32Array(indices1))as RAPIER.ColliderDesc).setMass(12).setFriction(0)
+// world.createCollider(cacharroShape1,cacharroBody)
 
 // #endregion
 
@@ -189,17 +189,18 @@ world.createCollider(cacharroShape1,cacharroBody)
 
 // #region MANGO COLLIDER
 //MUST ADD A JOINT BETWEEN cacharroMesh and cacharroSHape1(metal) SO GRAVITY WONT PULL DOWN WHEN TOUCHED
-const mangoBody = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 1.22, mango.children[0].position.z ).setCanSleep(true))
-mango.updateMatrixWorld(true)
-const mangoMesh = mango.children[0] as THREE.Mesh
-mangoMesh.position.z = 0
-mangoMesh.rotation.z-= Math.PI/2
-const mangoPoints = new Float32Array(mangoMesh.geometry.attributes.position.array)
-const mangoindices = new Uint32Array((mangoMesh.geometry.index as THREE.BufferAttribute).array)
-const mangoShape = (RAPIER.ColliderDesc.trimesh(new Float32Array(mangoPoints),new Uint32Array(mangoindices))as RAPIER.ColliderDesc).setMass(0)
-world.createCollider(mangoShape,mangoBody)
-dynamicBodies.push([mango, mangoBody])
+// const mangoBody = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 1.22, mango.children[0].position.z ).setCanSleep(true))
+// mango.updateMatrixWorld(true)
+// const mangoMesh = mango.children[0] as THREE.Mesh
+// mangoMesh.position.z = 0
+// mangoMesh.rotation.z-= Math.PI/2
+// const mangoPoints = new Float32Array(mangoMesh.geometry.attributes.position.array)
+// const mangoindices = new Uint32Array((mangoMesh.geometry.index as THREE.BufferAttribute).array)
+// const mangoShape = (RAPIER.ColliderDesc.trimesh(new Float32Array(mangoPoints),new Uint32Array(mangoindices))as RAPIER.ColliderDesc).setMass(0)
+// world.createCollider(mangoShape,mangoBody)
+// dynamicBodies.push([mango, mangoBody])
 // #endregion
+
 
 
 
@@ -249,7 +250,7 @@ dynamicBodies.push([coin, coinBody])
 // #region BALLZ
 const ballRadius = 0.09
 const scale = 3*ballRadius
-const angleStep = Math.PI/3
+const angleStep = Math.PI/24
 
 for(let theta=Math.PI/3; theta<2*Math.PI; theta= theta+angleStep){
   for(let phi=0; phi<2*Math.PI; phi= phi+angleStep){
@@ -258,7 +259,8 @@ for(let theta=Math.PI/3; theta<2*Math.PI; theta= theta+angleStep){
       2+scale*Math.sin(theta)*Math.sin(phi),
       scale* Math.cos(theta),
     )
-    const bolaMaterial  = (bola.children[0] as THREE.Mesh).material as THREE.MeshPhysicalMaterial
+    // const bolaMaterial  = (bola.children[0] as THREE.Mesh).material as THREE.MeshPhysicalMaterial
+    const bolaMaterial  = (new THREE.Mesh()).material as THREE.MeshPhysicalMaterial
     let material = bolaMaterial.clone()
     material.roughness = Math.random()*0.6+0.1
     let ball = await Ballz.addNewBall(scene,world,ballRadius,position, material)
@@ -291,28 +293,28 @@ document.addEventListener('mousemove',(event)=>{
   mousePosition = {x:event.clientX, y: event.clientY}
 })
 
-const dragHandleControls = new DragControls( [mango], camera, renderer.domElement );
-dragHandleControls.mode = 'rotate'
-dragHandleControls.rotateSpeed = 0.5
+// const dragHandleControls = new DragControls( [mango], camera, renderer.domElement );
+// dragHandleControls.mode = 'rotate'
+// dragHandleControls.rotateSpeed = 0.5
 
-dragHandleControls.addEventListener( 'dragstart', function ( event ) {
-  console.log(event)
-})
+// dragHandleControls.addEventListener( 'dragstart', function ( event ) {
+//   console.log(event)
+// })
 
-dragHandleControls.addEventListener( 'drag', function ( event ) {
-	console.log(event.object.rotation.z*2*Math.PI)
-  event.object.rotation.x = 0
-  event.object.rotation.y= 0
-  event.object.rotation.z -= (Math.abs(mouseMovement.x^2) + Math.abs(mouseMovement.y^2))/200
-  dynamicBodies[0][1].setRotation({x:0,y:0,z:mango.quaternion.z,w:mango.quaternion.w},true)
+// dragHandleControls.addEventListener( 'drag', function ( event ) {
+// 	console.log(event.object.rotation.z*2*Math.PI)
+//   event.object.rotation.x = 0
+//   event.object.rotation.y= 0
+//   event.object.rotation.z -= (Math.abs(mouseMovement.x^2) + Math.abs(mouseMovement.y^2))/200
+//   dynamicBodies[0][1].setRotation({x:0,y:0,z:mango.quaternion.z,w:mango.quaternion.w},true)
 
-    //need to detect if mouse is left or right to the rotation Z axis, and change the sign of each X, Y contribution
+//     //need to detect if mouse is left or right to the rotation Z axis, and change the sign of each X, Y contribution
   
-});
-dragHandleControls.addEventListener( 'dragend', function (  ) {
-  dynamicBodies[0][1].setTranslation(new RAPIER.Vector3(0, 1.22, 0.2998),true) 
-  dynamicBodies[0][1].setRotation({x:mango.quaternion.x,y:mango.quaternion.y,z:mango.quaternion.z,w:mango.quaternion.w},true)
-})
+// });
+// dragHandleControls.addEventListener( 'dragend', function (  ) {
+//   dynamicBodies[0][1].setTranslation(new RAPIER.Vector3(0, 1.22, 0.2998),true) 
+//   dynamicBodies[0][1].setRotation({x:mango.quaternion.x,y:mango.quaternion.y,z:mango.quaternion.z,w:mango.quaternion.w},true)
+// })
 // #endregion MANGO CONTROLS
 
 
@@ -324,16 +326,16 @@ const dragCoinControls = new DragControls( [coin], camera, renderer.domElement )
 let isCoinDragged = false
 dragCoinControls.addEventListener( 'dragstart', function (event) {
   isCoinDragged = true
-  event.object.position.z = 0.2999
-  event.object.rotation.x = 0
-  event.object.rotation.y= 0
-  event.object.rotateX(Math.PI/2)
+  // event.object.position.z = 0.2999
+  // event.object.rotation.x = 0
+  // event.object.rotation.y= 0
+  // event.object.rotateX(Math.PI/2)
 })
 dragCoinControls.addEventListener( 'drag', function (event) {
-  event.object.position.z = 0.2999
+  // event.object.position.z = 0.2999
 })
 dragCoinControls.addEventListener( 'dragend', function ( event ) {
-  event.object.position.z = 0.2999
+  // event.object.position.z = 0.2999
   isCoinDragged = false
   dynamicBodies[1][1].setTranslation(new RAPIER.Vector3(event.object.position.x,event.object.position.y,event.object.position.z),true) 
   //MUST SET DIRECTION FROM WHEREVER CAMERA IS LOOKING 
@@ -361,10 +363,10 @@ function animate() {
   requestAnimationFrame(animate)
 
   delta = clock.getDelta()
-  if(cacharro){
-    let pos = new THREE.Vector3(cacharro.position.x, cacharro.position.y +1.3, cacharro.position.z)
-    camera.lookAt(pos)
-  }
+  // if(cacharro){
+  //   let pos = new THREE.Vector3(cacharro.position.x, cacharro.position.y +1.3, cacharro.position.z)
+  //   camera.lookAt(pos)
+  // }
   world.timestep = Math.min(delta, 0.1)
   world.step()
   for (let i = 0, n = dynamicBodies.length; i < n; i++) {
