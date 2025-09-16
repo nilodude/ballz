@@ -8,16 +8,20 @@ async function loadModel(scene: THREE.Scene,path: string, add:boolean = true){
     let model = new THREE.Group<THREE.Object3DEventMap>()
     const gltf = await loader.loadAsync('./'+path+'.glb')
     model =  gltf.scene
-    console.log(model)
+    console.log(path,model)
     model.traverse((node:any)=>{
         if(node.isMesh){
             node.castShadow = true
             model.receiveShadow = true
         }
-        // console.log(node)
+        // scene.add(node)
+        console.log(node.material)
     })
    
-    if(add) scene.add(model)
+    if(add){
+        scene.add(model)
+    }
+        
     return model
 }
 

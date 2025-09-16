@@ -37,8 +37,8 @@ let plataformas: THREE.Object3D<THREE.Object3DEventMap>[]  = []
 let barril = new THREE.Group<THREE.Object3DEventMap>()
 let barriles = new THREE.Group<THREE.Object3DEventMap>()
 // maybe worth it to finetune MeshPhysicalMaterial to look like glass, but for that to work, scene needs ENVIRONMENT lighting setup correctly
-bola = await Loader.loadModel(scene,'bola2')
-cacharro = await Loader.loadModel(scene,'cacharro2')
+bola = await Loader.loadModel(scene,'bola2', false)
+cacharro = await Loader.loadModel(scene,'cacharro2', true)
 mango  = await Loader.loadModel(scene,'mango')
 
 mango.position.y += 1.22293
@@ -49,9 +49,12 @@ escenario  = await Loader.loadModel(scene,'escenario001', false)
 plataformas = escenario.children.filter(c=>c.name.includes('Cube') /*||c.name =='fondo'*/)
 
 
-barril  = await Loader.loadModel(scene,'barril', true)
+barril  = await Loader.loadModel(scene,'barril', false)
 
 barriles  = await Loader.loadModel(scene,'barriles', true)
+// TODO: README: when loading all scene, positions are correct, but no materials
+// TODO: README: when loading individual children, position is (0,0,0) and still no material
+// scene.add(barriles.children[25].children[0])
 //#endregion LOAD MODELS
 
 
@@ -260,8 +263,8 @@ const plataformaBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed()
 
 
 const barrilMaterial  = (barril.children[0] as THREE.Mesh).material as THREE.MeshPhysicalMaterial
-console.log(barril)
-console.log(barrilMaterial)
+// console.log(barril)
+// console.log(barrilMaterial)
       
 
 
