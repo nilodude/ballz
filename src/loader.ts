@@ -4,7 +4,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 const loader = new GLTFLoader()
 
 
-async function loadModel(scene: THREE.Scene,path: string){
+async function loadModel(scene: THREE.Scene,path: string, add:boolean = true){
     let model = new THREE.Group<THREE.Object3DEventMap>()
     const gltf = await loader.loadAsync('./'+path+'.glb')
     model =  gltf.scene
@@ -14,9 +14,10 @@ async function loadModel(scene: THREE.Scene,path: string){
             node.castShadow = true
             model.receiveShadow = true
         }
+        // console.log(node)
     })
    
-    scene.add(model)
+    if(add) scene.add(model)
     return model
 }
 

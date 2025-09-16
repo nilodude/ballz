@@ -32,7 +32,10 @@ const rapierDebugRenderer = new RapierDebugRenderer(scene, world)
 let bola = new THREE.Group<THREE.Object3DEventMap>()
 let cacharro = new THREE.Group<THREE.Object3DEventMap>()
 let mango = new THREE.Group<THREE.Object3DEventMap>()
-
+let escenario = new THREE.Group<THREE.Object3DEventMap>()
+let plataformas: THREE.Object3D<THREE.Object3DEventMap>[]  = []
+let barril = new THREE.Group<THREE.Object3DEventMap>()
+let barriles = new THREE.Group<THREE.Object3DEventMap>()
 // maybe worth it to finetune MeshPhysicalMaterial to look like glass, but for that to work, scene needs ENVIRONMENT lighting setup correctly
 bola = await Loader.loadModel(scene,'bola2')
 cacharro = await Loader.loadModel(scene,'cacharro2')
@@ -40,8 +43,16 @@ mango  = await Loader.loadModel(scene,'mango')
 
 mango.position.y += 1.22293
 mango.rotation.z -= Math.PI/2
-//#endregion LOAD MODELS
 
+
+escenario  = await Loader.loadModel(scene,'escenario001', false)
+plataformas = escenario.children.filter(c=>c.name.includes('Cube') /*||c.name =='fondo'*/)
+
+
+barril  = await Loader.loadModel(scene,'barril', true)
+
+barriles  = await Loader.loadModel(scene,'barriles', true)
+//#endregion LOAD MODELS
 
 
 
@@ -82,8 +93,8 @@ window.addEventListener('resize', () => {
 
 
 // #region AUDIO
-const listener = new THREE.AudioListener();
-camera.add( listener );
+// const listener = new THREE.AudioListener();
+// camera.add( listener );
 
 // const sound = new THREE.Audio( listener );
 
@@ -97,6 +108,7 @@ camera.add( listener );
 // 	// sound.play();
 // });
 //#endregion 
+
 
 
 
@@ -126,6 +138,7 @@ light2.shadow.camera.far = 10000;
 
 
 
+
 // #region GUI & STATS
 const stats = new Stats()
 document.body.appendChild(stats.dom)
@@ -146,6 +159,8 @@ light2Folder.add(light2.position, 'x', -10000,10000)
 light2Folder.add(light2.position, 'y', -10000,10000)
 light2Folder.add(light2.position, 'z', -10000,10000)
 // #endregion GUI & STATS
+
+
 
 
 //#region BOLA COLLIDER
@@ -185,8 +200,6 @@ world.createCollider(cacharroShape1,cacharroBody)
 
 
 
-
-
 // #region MANGO COLLIDER
 //MUST ADD A JOINT BETWEEN cacharroMesh and cacharroSHape1(metal) SO GRAVITY WONT PULL DOWN WHEN TOUCHED
 const mangoBody = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 1.22, mango.children[0].position.z ).setCanSleep(true))
@@ -220,7 +233,36 @@ world.createCollider(floorShape, floorBody)
 // #endregion FLOOR
 
 
+//#region PLATAFORMAS COLLIDER
+plataformas.forEach(plataforma=>{
+  
+const plataformaQuaternion = new THREE.Quaternion().setFromEuler(plataforma.rotation);
+const plataformaBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed()
+  .setTranslation(plataforma.position.x, plataforma.position.y, plataforma.position.z)
+  .setRotation({
+    x: plataformaQuaternion.x,
+    y: plataformaQuaternion.y,
+    z: plataformaQuaternion.z,
+    w: plataformaQuaternion.w
+  })
+)
+  
+  plataforma.updateMatrixWorld(true)
+  const plataformaMesh = plataforma as THREE.Mesh
+  const points = new Float32Array(plataformaMesh.geometry.attributes.position.array)
+  const indices = new Uint32Array((plataformaMesh.geometry.index as THREE.BufferAttribute).array)
+  const plataformaShape = (RAPIER.ColliderDesc.trimesh(new Float32Array(points),new Uint32Array(indices))as RAPIER.ColliderDesc).setMass(120)
+  world.createCollider(plataformaShape,plataformaBody)
+  
+  scene.add(plataforma)
+})
+//#endregion
 
+
+const barrilMaterial  = (barril.children[0] as THREE.Mesh).material as THREE.MeshPhysicalMaterial
+console.log(barril)
+console.log(barrilMaterial)
+      
 
 
 // #region COIN 
@@ -383,7 +425,7 @@ function animate() {
     }
     // dynamicBodies[i][1].sleep()  //comment this line to make balls stop in the air
   }
-  camera.position.lerp(new THREE.Vector3(0.5,0.5,3), delta/17)
+  // camera.position.lerp(new THREE.Vector3(0.5,0.5,3), delta/17)
   // rapierDebugRenderer.update()
   // orbitControls.update(delta)
   flyControls.update( delta );
