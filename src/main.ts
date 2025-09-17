@@ -2,6 +2,7 @@ import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { FlyControls } from 'three/addons/controls/FlyControls.js';
+import { FirstPersonControls } from 'three/addons/controls/FirstPersonControls.js';
 import { DragControls } from 'three/addons/controls/DragControls.js';
 import Stats from 'three/addons/libs/stats.module.js'
 import { GUI } from 'dat.gui'
@@ -51,7 +52,7 @@ plataformas = escenario.children.filter(c=>c.name.includes('Cube') /*||c.name ==
 
 barril  = await Loader.loadModel(scene,'barril', false)
 
-barriles  = await Loader.loadModel(scene,'barriles', true)
+barriles  = await Loader.loadModel(scene,'barriles', false)
 // TODO: README: when loading all scene, positions are correct, but no materials
 // TODO: README: when loading individual children, position is (0,0,0) and still no material
 // scene.add(barriles.children[25].children[0])
@@ -60,7 +61,7 @@ barriles  = await Loader.loadModel(scene,'barriles', true)
 
 
 // #region CAMERA & RENDERER
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000)
 // camera.position.x = 0.75
 // camera.position.y = 1.3
 // camera.position.z = 2.3
@@ -261,11 +262,14 @@ const plataformaBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed()
 })
 //#endregion
 
+const barrilParts = barril.children[0].children
+const barrilMetalMaterial  = (barrilParts[1] as THREE.Mesh).material 
+const barrilWoodMaterial  = (barrilParts[0] as THREE.Mesh).material 
+console.log(barril.children[0].children)
+console.log(barrilMetalMaterial,barrilWoodMaterial)
 
-const barrilMaterial  = (barril.children[0] as THREE.Mesh).material as THREE.MeshPhysicalMaterial
-// console.log(barril)
-// console.log(barrilMaterial)
-      
+const barrilManual = new THREE.Mesh((barrilParts[0] as THREE.Mesh).geometry, bolaMesh.material)
+scene.add(barrilManual) 
 
 
 // #region COIN 
@@ -273,6 +277,7 @@ const coinMaterial = new THREE.MeshPhongMaterial({
   color: new THREE.Color(0xffffff),
   side: THREE.DoubleSide
 })
+
 const coinGeometry = new THREE.CylinderGeometry( 0.02, 0.02, 0.005, 16 ); 
 const coin = new THREE.Mesh(coinGeometry, coinMaterial)
 coin.name = 'coin'
@@ -321,12 +326,11 @@ orbitControls.enableRotate = false
 // orbitControls.autoRotate = true
 // orbitControls.autoRotateSpeed= 0.3
 let flyControls = new FlyControls( camera, renderer.domElement );
-flyControls.movementSpeed = 1.7;
+flyControls.movementSpeed = 3;
 flyControls.domElement = renderer.domElement;
-flyControls.rollSpeed = Math.PI / 24;
+flyControls.rollSpeed = Math.PI / 6;
 flyControls.autoForward = false;
 flyControls.dragToLook = true;
-
 
 // #region MANGO CONTROLS
 let mouseMovement = {x: 0, y:0}
@@ -395,9 +399,24 @@ dragCoinControls.addEventListener( 'dragend', function ( event ) {
 
 
 
+window.addEventListener('mousedown', async (event:any) => {
+  if(event.button == 0){
+    const bolaMaterial  = (bola.children[0] as THREE.Mesh).material as THREE.MeshPhysicalMaterial
+    let material = bolaMaterial.clone()
+    material.roughness = Math.random()*0.6+0.1
+    
+    const vector = new THREE.Vector3( 0, 0, - 1 );
+    vector.applyQuaternion( camera.quaternion );
+    const force = 20
+    const infrontOfCamera = new THREE.Vector3().addVectors(camera.position, vector) 
+    let ball = await Ballz.addNewBall(scene,world,ballRadius,infrontOfCamera, material) as [THREE.Object3D<THREE.Object3DEventMap>, RAPIER.RigidBody]
+    ball[1].applyImpulse(new RAPIER.Vector3(force*vector.x,5+force*vector.y,force*vector.z ),true)
+    dynamicBodies.push(ball)
+  }
+})
 
-
-
+// TODO: probably need to implement some of https://github.com/simondevyoutube/ThreeJS_Tutorial_FirstPersonCamera/blob/main/main.js
+// to make controls natural
 
 //ANIMATION LOOP
 const clock = new THREE.Clock()
@@ -408,7 +427,7 @@ function animate() {
   delta = clock.getDelta()
   if(cacharro){
     let pos = new THREE.Vector3(cacharro.position.x, cacharro.position.y +1.3, cacharro.position.z)
-    camera.lookAt(pos)
+    // camera.lookAt(pos)
   }
   world.timestep = Math.min(delta, 0.1)
   world.step()
