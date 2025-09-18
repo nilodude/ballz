@@ -405,12 +405,25 @@ window.addEventListener('mousedown', async (event:any) => {
     let material = bolaMaterial.clone()
     material.roughness = Math.random()*0.6+0.1
     
-    const vector = new THREE.Vector3( 0, 0, - 1 );
-    vector.applyQuaternion( camera.quaternion );
+    const mouse = new THREE.Vector2(
+      (event.clientX / window.innerWidth) * 2 - 1,
+      -(event.clientY / window.innerHeight) * 2 + 1
+    )
+    
+    const raycaster = new THREE.Raycaster()
+    raycaster.setFromCamera(mouse, camera)
+    
+    const shootingDirection = raycaster.ray.direction
+    
+    const offsetDistance = 1 
+    const infrontOfCamera = new THREE.Vector3().addVectors(
+      camera.position,
+      shootingDirection.clone().multiplyScalar(offsetDistance)
+    )
+    
     const force = 20
-    const infrontOfCamera = new THREE.Vector3().addVectors(camera.position, vector) 
     let ball = await Ballz.addNewBall(scene,world,ballRadius,infrontOfCamera, material) as [THREE.Object3D<THREE.Object3DEventMap>, RAPIER.RigidBody]
-    ball[1].applyImpulse(new RAPIER.Vector3(force*vector.x,5+force*vector.y,force*vector.z ),true)
+    ball[1].applyImpulse(new RAPIER.Vector3(force*shootingDirection.x, force*shootingDirection.y, force*shootingDirection.z),true)
     dynamicBodies.push(ball)
   }
 })
