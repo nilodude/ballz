@@ -237,6 +237,8 @@ world.createCollider(floorShape, floorBody)
 // #endregion FLOOR
 
 
+
+
 //#region PLATAFORMAS COLLIDER
 plataformas.forEach(plataforma=>{
   
@@ -258,7 +260,7 @@ const plataformaBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed()
   const plataformaShape = (RAPIER.ColliderDesc.trimesh(new Float32Array(points),new Uint32Array(indices))as RAPIER.ColliderDesc).setMass(120)
   world.createCollider(plataformaShape,plataformaBody)
   
-  scene.add(plataforma)
+  // scene.add(plataforma)
 })
 //#endregion
 
@@ -269,7 +271,7 @@ console.log(barril.children[0].children)
 console.log(barrilMetalMaterial,barrilWoodMaterial)
 
 const barrilManual = new THREE.Mesh((barrilParts[0] as THREE.Mesh).geometry, bolaMesh.material)
-scene.add(barrilManual) 
+// scene.add(barrilManual) 
 
 
 // #region COIN 
@@ -295,6 +297,7 @@ dynamicBodies.push([coin, coinBody])
 // #endregion COIN
 
 
+
 //BALLZ
 // #region BALLZ
 const ballRadius = 0.09
@@ -311,6 +314,7 @@ for(let theta=Math.PI/3; theta<2*Math.PI; theta= theta+angleStep){
     const bolaMaterial  = (bola.children[0] as THREE.Mesh).material as THREE.MeshPhysicalMaterial
     let material = bolaMaterial.clone()
     material.roughness = Math.random()*0.6+0.1
+    // TODO: probably collider sometimes fail because it should be slightly bigger than the mesh
     let ball = await Ballz.addNewBall(scene,world,ballRadius,position, material)
     dynamicBodies.push(ball)
   }
@@ -334,7 +338,7 @@ const cameraRotation = {
   y: 0  // horizontal rotation (yaw)
 }
 const mouseSensitivity = 0.0015 
-// #region MANGO CONTROLS
+
 let mouseMovement = {x: 0, y:0}
 let mousePosition = {x: 0, y:0}
 
@@ -390,6 +394,8 @@ document.addEventListener('keyup', (event) => {
     }
 })
 
+
+// #region MANGO CONTROLS
 const dragHandleControls = new DragControls( [mango], camera, renderer.domElement );
 dragHandleControls.mode = 'rotate'
 dragHandleControls.rotateSpeed = 0.5
@@ -413,7 +419,6 @@ dragHandleControls.addEventListener( 'dragend', function (  ) {
   dynamicBodies[0][1].setRotation({x:mango.quaternion.x,y:mango.quaternion.y,z:mango.quaternion.z,w:mango.quaternion.w},true)
 })
 // #endregion MANGO CONTROLS
-
 
 
 
@@ -445,10 +450,11 @@ dragCoinControls.addEventListener( 'dragend', function ( event ) {
   
 })
 // #endregion COIN CONTROLS
-// #endregion CONTROLS
 
 
 
+
+//#region SHOOT CONTROLS
 window.addEventListener('mousedown', async (event:any) => {
   if(event.button == 0){
     const bolaMaterial  = (bola.children[0] as THREE.Mesh).material as THREE.MeshPhysicalMaterial
@@ -477,6 +483,10 @@ window.addEventListener('mousedown', async (event:any) => {
     dynamicBodies.push(ball)
   }
 })
+// #endregion SHOOT CONTROLS
+
+// #endregion CONTROLS
+
 
 // TODO: probably need to implement some of https://github.com/simondevyoutube/ThreeJS_Tutorial_FirstPersonCamera/blob/main/main.js
 // to make controls natural
