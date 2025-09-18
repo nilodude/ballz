@@ -73,7 +73,7 @@ const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerH
 
 //almost floor height
 camera.position.x = 0.5
-camera.position.y = 0.5
+camera.position.y = 1.86
 camera.position.z = 3
 
 
@@ -321,23 +321,73 @@ for(let theta=Math.PI/3; theta<2*Math.PI; theta= theta+angleStep){
 
 
 // #region CONTROLS
-let orbitControls = new OrbitControls(camera, renderer.domElement)
-orbitControls.enableRotate = false
-// orbitControls.autoRotate = true
-// orbitControls.autoRotateSpeed= 0.3
-let flyControls = new FlyControls( camera, renderer.domElement );
-flyControls.movementSpeed = 3;
-flyControls.domElement = renderer.domElement;
-flyControls.rollSpeed = Math.PI / 6;
-flyControls.autoForward = false;
-flyControls.dragToLook = true;
+const moveSpeed = 3  
+const moveState = {
+    forward: false,
+    backward: false,
+    left: false,
+    right: false
+}
 
+const cameraRotation = {
+  x: 0, // vertical rotation (pitch)
+  y: 0  // horizontal rotation (yaw)
+}
+const mouseSensitivity = 0.0015 
 // #region MANGO CONTROLS
 let mouseMovement = {x: 0, y:0}
 let mousePosition = {x: 0, y:0}
+
+const jumpState = {
+    velocity: 0,
+    isGrounded: true,
+    jumpCount: 0,
+    maxJumps: 2, 
+    initialJumpSpeed: 5,
+    gravity: 9.81
+}
 document.addEventListener('mousemove',(event)=>{
   mouseMovement = {x:event.movementX, y:event.movementY}
   mousePosition = {x:event.clientX, y: event.clientY}
+
+  cameraRotation.y -= mouseMovement.x * mouseSensitivity
+  cameraRotation.x -= mouseMovement.y * mouseSensitivity
+  
+  // clamp vertical rotation to prevent camera flipping
+  cameraRotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, cameraRotation.x))
+  
+  camera.rotation.order = 'YXZ' 
+  camera.rotation.x = cameraRotation.x
+  camera.rotation.y = cameraRotation.y
+})
+renderer.domElement.addEventListener('click', () => {
+  renderer.domElement.requestPointerLock()
+})
+document.addEventListener('keydown', (event) => {
+    switch(event.code) {
+        case 'KeyW': moveState.forward = true; break
+        case 'KeyS': moveState.backward = true; break
+        case 'KeyA': moveState.left = true; break
+        case 'KeyD': moveState.right = true; break
+        case 'Space': 
+          if (jumpState.jumpCount < jumpState.maxJumps) {
+            const jumpPower = jumpState.jumpCount === 0 ? 
+              jumpState.initialJumpSpeed : 
+              jumpState.initialJumpSpeed * 0.8; 
+            jumpState.velocity = jumpPower;
+            jumpState.jumpCount++;
+            jumpState.isGrounded = false;
+          }
+    }
+})
+
+document.addEventListener('keyup', (event) => {
+    switch(event.code) {
+        case 'KeyW': moveState.forward = false; break
+        case 'KeyS': moveState.backward = false; break
+        case 'KeyA': moveState.left = false; break
+        case 'KeyD': moveState.right = false; break
+    }
 })
 
 const dragHandleControls = new DragControls( [mango], camera, renderer.domElement );
@@ -438,10 +488,37 @@ function animate() {
   requestAnimationFrame(animate)
 
   delta = clock.getDelta()
-  if(cacharro){
-    let pos = new THREE.Vector3(cacharro.position.x, cacharro.position.y +1.3, cacharro.position.z)
-    // camera.lookAt(pos)
+  // Handle WASD movement
+  if (moveState.forward || moveState.backward || moveState.left || moveState.right) {
+    // Calculate forward direction from camera's rotation
+    const forward = new THREE.Vector3(0, 0, -1)
+    forward.applyQuaternion(camera.quaternion)
+    forward.y = 0 // Keep movement horizontal
+    forward.normalize()
+    // Calculate right direction from forward
+    const right = new THREE.Vector3(forward.z, 0, -forward.x)
+    const moveVector = new THREE.Vector3(0, 0, 0)
+    if (moveState.forward) moveVector.add(forward)
+    if (moveState.backward) moveVector.sub(forward)
+    if (moveState.right) moveVector.sub(right)
+    if (moveState.left) moveVector.add(right)
+    moveVector.normalize()
+    moveVector.multiplyScalar(moveSpeed * delta)
+    camera.position.add(moveVector)
   }
+  
+  jumpState.velocity -= jumpState.gravity * delta
+  camera.position.y += jumpState.velocity * delta
+  if (camera.position.y <= 0.5) { 
+      camera.position.y = 0.5
+      if (!jumpState.isGrounded) {
+          jumpState.isGrounded = true
+          jumpState.jumpCount = 0 
+      }
+      jumpState.velocity = 0
+  }  
+
+
   world.timestep = Math.min(delta, 0.1)
   world.step()
   for (let i = 0, n = dynamicBodies.length; i < n; i++) {
@@ -461,9 +538,9 @@ function animate() {
     // dynamicBodies[i][1].sleep()  //comment this line to make balls stop in the air
   }
   // camera.position.lerp(new THREE.Vector3(0.5,0.5,3), delta/17)
-  // rapierDebugRenderer.update()
+  rapierDebugRenderer.update()
   // orbitControls.update(delta)
-  flyControls.update( delta );
+  // flyControls.update( delta );
   renderer.render(scene, camera)
   stats.update()
 }
