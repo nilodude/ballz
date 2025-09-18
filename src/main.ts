@@ -477,8 +477,8 @@ window.addEventListener('mousedown', async (event:any) => {
       shootingDirection.clone().multiplyScalar(offsetDistance)
     )
     
-    const force = 20
-    let ball = await Ballz.addNewBall(scene,world,ballRadius,infrontOfCamera, material) as [THREE.Object3D<THREE.Object3DEventMap>, RAPIER.RigidBody]
+    const force = 60
+    let ball = await Ballz.addNewBall(scene,world,1,infrontOfCamera, material) as [THREE.Object3D<THREE.Object3DEventMap>, RAPIER.RigidBody]
     ball[1].applyImpulse(new RAPIER.Vector3(force*shootingDirection.x, force*shootingDirection.y, force*shootingDirection.z),true)
     dynamicBodies.push(ball)
   }
@@ -519,8 +519,8 @@ function animate() {
   
   jumpState.velocity -= jumpState.gravity * delta
   camera.position.y += jumpState.velocity * delta
-  if (camera.position.y <= 0.5) { 
-      camera.position.y = 0.5
+  if (camera.position.y <= 1.86) { 
+      camera.position.y = 1.86
       if (!jumpState.isGrounded) {
           jumpState.isGrounded = true
           jumpState.jumpCount = 0 
