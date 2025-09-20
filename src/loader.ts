@@ -39,7 +39,7 @@ async function loadImage(scene: THREE.Scene,path: string, add:boolean = true){
             console.log(imageBitmap)
             const texture = new THREE.CanvasTexture( imageBitmap );
 	        const material = new THREE.MeshBasicMaterial( { map: texture } );
-            const geometry = new THREE.BoxGeometry();
+            const geometry = new THREE.BoxGeometry(imageBitmap.width/70, imageBitmap.height/70, 2);
             image = new THREE.Mesh( geometry, material );
 	        image.position.set( Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1 );
 	        image.rotation.set( Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI );

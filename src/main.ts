@@ -330,7 +330,7 @@ for(let theta=Math.PI/3; theta<2*Math.PI; theta= theta+angleStep){
 
 
 // #region CONTROLS
-const moveSpeed = 3  
+const moveSpeed = 6  
 const moveState = {
     forward: false,
     backward: false,
