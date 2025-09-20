@@ -52,6 +52,7 @@ plataformas = escenario.children.filter(c=>c.name.includes('Cube') /*||c.name ==
 
 barril  = await Loader.loadModel(scene,'barril', false)
 
+
 barriles  = await Loader.loadModel(scene,'barriles', false)
 // TODO: README: when loading all scene, positions are correct, but no materials
 // TODO: README: when loading individual children, position is (0,0,0) and still no material
@@ -242,16 +243,16 @@ world.createCollider(floorShape, floorBody)
 //#region PLATAFORMAS COLLIDER
 plataformas.forEach(plataforma=>{
   
-const plataformaQuaternion = new THREE.Quaternion().setFromEuler(plataforma.rotation);
-const plataformaBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed()
-  .setTranslation(plataforma.position.x, plataforma.position.y, plataforma.position.z)
-  .setRotation({
-    x: plataformaQuaternion.x,
-    y: plataformaQuaternion.y,
-    z: plataformaQuaternion.z,
-    w: plataformaQuaternion.w
-  })
-)
+  const plataformaQuaternion = new THREE.Quaternion().setFromEuler(plataforma.rotation);
+  const plataformaBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed()
+    .setTranslation(plataforma.position.x, plataforma.position.y, plataforma.position.z)
+    .setRotation({
+      x: plataformaQuaternion.x,
+      y: plataformaQuaternion.y,
+      z: plataformaQuaternion.z,
+      w: plataformaQuaternion.w
+    })
+  )
   
   plataforma.updateMatrixWorld(true)
   const plataformaMesh = plataforma as THREE.Mesh
@@ -315,7 +316,7 @@ for(let theta=Math.PI/3; theta<2*Math.PI; theta= theta+angleStep){
     let material = bolaMaterial.clone()
     material.roughness = Math.random()*0.6+0.1
     // TODO: probably collider sometimes fail because it should be slightly bigger than the mesh
-    let ball = await Ballz.addNewBall(scene,world,ballRadius,position, material)
+    let ball = await Ballz.addNewBall(scene,world,ballRadius,position,undefined, material)
     dynamicBodies.push(ball)
   }
 }
@@ -478,9 +479,13 @@ window.addEventListener('mousedown', async (event:any) => {
     )
     
     const force = 60
-    let ball = await Ballz.addNewBall(scene,world,1,infrontOfCamera, material) as [THREE.Object3D<THREE.Object3DEventMap>, RAPIER.RigidBody]
-    ball[1].applyImpulse(new RAPIER.Vector3(force*shootingDirection.x, force*shootingDirection.y, force*shootingDirection.z),true)
-    dynamicBodies.push(ball)
+    // let ball = await Ballz.addNewBall(scene,world,1,infrontOfCamera,5, material) as [THREE.Object3D<THREE.Object3DEventMap>, RAPIER.RigidBody]
+    // ball[1].applyImpulse(new RAPIER.Vector3(force*shootingDirection.x, force*shootingDirection.y, force*shootingDirection.z),true)
+    // dynamicBodies.push(ball)
+
+    let barril = await Ballz.addNewObject(scene, world,barrilManual.geometry,infrontOfCamera,5,bolaMaterial )
+    barril[1].applyImpulse(new RAPIER.Vector3(force*shootingDirection.x, force*shootingDirection.y, force*shootingDirection.z),true)
+    dynamicBodies.push(barril)
   }
 })
 // #endregion SHOOT CONTROLS
@@ -545,7 +550,7 @@ function animate() {
       dynamicBodies[i][0].quaternion.copy(dynamicBodies[i][1].rotation())
 
     }
-    // dynamicBodies[i][1].sleep()  //comment this line to make balls stop in the air
+    // dynamicBodies[i][1].sleep()  //uncomment this line to make balls stop in the air
   }
   // camera.position.lerp(new THREE.Vector3(0.5,0.5,3), delta/17)
   rapierDebugRenderer.update()
