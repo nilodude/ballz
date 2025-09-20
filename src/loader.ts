@@ -15,7 +15,7 @@ async function loadModel(scene: THREE.Scene,path: string, add:boolean = true){
             model.receiveShadow = true
         }
         // scene.add(node)
-        console.log(node.name,node.material)
+        if(add)console.log(path,node.name,node)
     })
    
     if(add){
@@ -52,10 +52,12 @@ async function loadImage(scene: THREE.Scene,path: string, add:boolean = true){
 	    	console.log( 'An error happened',err ); 
 	    }
     );
-
     return image
 }
 
+async function loadCollider(){
+
+}
 
 
 

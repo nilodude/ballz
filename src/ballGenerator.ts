@@ -17,19 +17,20 @@ async function createBallMesh(ballRadius:number, material: THREE.MeshPhysicalMat
 
 async function createBallBody(world: RAPIER.World, ballRadius: number,position: THREE.Vector3, mass:number){     
       const ballBody = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(position.x, position.y, position.z).setCanSleep(true))
-      const ballShape = RAPIER.ColliderDesc.ball(ballRadius).setMass(mass).setRestitution(0.85).setFriction(1)
-      world.createCollider(ballShape, ballBody)
+      const ballShape = RAPIER.ColliderDesc.ball(ballRadius).setMass(mass).setRestitution(0.95).setFriction(1)
+      const collider = world.createCollider(ballShape, ballBody)
       ballBody.sleep()
-      return ballBody
+      return {body: ballBody, collider: collider}
 }
 
 async function addNewBall( scene: THREE.Scene,world: RAPIER.World,ballRadius: number, position: THREE.Vector3,mass:number = 2, material:  THREE.MeshPhysicalMaterial ){
     let ball = await createBallMesh(ballRadius, material) as THREE.Object3D
     scene.add( ball );
+    let ballBodyCollider = await createBallBody(world, ballRadius, position,mass)
 
-    let ballBody = await createBallBody(world, ballRadius, position,mass) as RAPIER.RigidBody
-    let bodies = [ball, ballBody]
-    return bodies as [THREE.Object3D<THREE.Object3DEventMap>, RAPIER.RigidBody]
+    let ballBody = ballBodyCollider.body as RAPIER.RigidBody
+    let bodies = [ball, ballBody, ballBodyCollider.collider]
+    return bodies as [THREE.Object3D<THREE.Object3DEventMap>, RAPIER.RigidBody, RAPIER.Collider]
 }
 
 async function addNewObject( scene: THREE.Scene,world: RAPIER.World,geometry:any, position: THREE.Vector3,mass:number = 2, material:  THREE.MeshPhysicalMaterial ){
@@ -48,8 +49,8 @@ async function createMesh(geometry:any, material: THREE.MeshPhysicalMaterial){
       return mesh
 }
 
-async function createBody(world: RAPIER.World,geometry:any,position: THREE.Vector3, mass:number){     
-    const body = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(position.x, position.y, position.z).setCanSleep(true))
+async function createBody(world: RAPIER.World,geometry:any,position: THREE.Vector3, mass:number, fixed:boolean = false){     
+    const body = fixed ? world.createRigidBody(RAPIER.RigidBodyDesc.fixed()) : world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(position.x, position.y, position.z).setCanSleep(true))
     const points = new Float32Array(geometry.attributes.position.array)
     const indices = new Uint32Array((geometry.index as THREE.BufferAttribute).array)
     const shape = (RAPIER.ColliderDesc.trimesh(new Float32Array(points),new Uint32Array(indices))as RAPIER.ColliderDesc).setMass(mass)
@@ -78,6 +79,7 @@ export {
     createBallMesh,
     createBallBody,
     addNewBall,
+    createBody,
     createCrosshair,
     addNewObject
 }

@@ -15,13 +15,13 @@ await RAPIER.init() // This line is only needed if using the compat version
 
 const gravity = new RAPIER.Vector3(0.0, -9.81, 0.0)
 const world = new RAPIER.World(gravity)
-const dynamicBodies: [THREE.Object3D, RAPIER.RigidBody][] = []
+let dynamicBodies: [THREE.Object3D, RAPIER.RigidBody][] = []
 
 
 //SCENE
 const scene = new THREE.Scene()
 scene.add(new THREE.AxesHelper(5))
-let environmentTexture = new THREE.CubeTextureLoader().setPath('https://sbcode.net/img/').load(['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png'])
+let environmentTexture = new THREE.CubeTextureLoader().setPath('./').load(['space.hdr'])
 scene.background = environmentTexture
 scene.environment = environmentTexture
 scene.backgroundBlurriness = 0
@@ -36,40 +36,33 @@ let mango = new THREE.Group<THREE.Object3DEventMap>()
 let escenario = new THREE.Group<THREE.Object3DEventMap>()
 let plataformas: THREE.Object3D<THREE.Object3DEventMap>[]  = []
 let barril = new THREE.Group<THREE.Object3DEventMap>()
-let barriles = new THREE.Group<THREE.Object3DEventMap>()
 // maybe worth it to finetune MeshPhysicalMaterial to look like glass, but for that to work, scene needs ENVIRONMENT lighting setup correctly
 bola = await Loader.loadModel(scene,'bola2', false)
 cacharro = await Loader.loadModel(scene,'cacharro2', true)
 mango  = await Loader.loadModel(scene,'mango')
-
 mango.position.y += 1.22293
 mango.rotation.z -= Math.PI/2
-
 
 escenario  = await Loader.loadModel(scene,'escenario001', false)
 plataformas = escenario.children.filter(c=>c.name.includes('Cube') /*||c.name =='fondo'*/)
 
-
 barril  = await Loader.loadModel(scene,'barril', false)
 
-
-barriles  = await Loader.loadModel(scene,'barriles', false)
-// TODO: README: when loading all scene, positions are correct, but no materials
-// TODO: README: when loading individual children, position is (0,0,0) and still no material
-// scene.add(barriles.children[25].children[0])
-
-
 // const imagen = await Loader.loadImage(scene, 'f3.jpg',true)
-let balon  = await Loader.loadModel(scene,'nilobasketball', true)
+let balon  = await Loader.loadModel(scene,'nilobasketball', false)
 
 let canasta  = await Loader.loadModel(scene,'CANASTA', true)
+const bbox = new THREE.Box3();
+bbox.setFromObject(canasta.children[0]); // This will include all children
 
-canasta.children[0].children[1].updateMatrixWorld(true)
-  const canastaMesh = canasta.children[0].children[1] as THREE.Mesh
+const totalHeight = bbox.max.y - bbox.min.y;
+canasta.children[0].children.forEach(children=>{
+  children.updateMatrixWorld(true)
+  const canastaMesh = children as THREE.Mesh
+  canastaMesh.position.y = canastaMesh.position.y+totalHeight*0.3
   const canastapoints = new Float32Array(canastaMesh.geometry.attributes.position.array)
   const canastaindices = new Uint32Array((canastaMesh.geometry.index as THREE.BufferAttribute).array)
   const canastaShape = (RAPIER.ColliderDesc.trimesh(new Float32Array(canastapoints),new Uint32Array(canastaindices))as RAPIER.ColliderDesc).setMass(120)
-  
   const canastaQuaternion = new THREE.Quaternion().setFromEuler(canastaMesh.rotation);
   const canastaBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed()
     .setTranslation(canastaMesh.position.x, canastaMesh.position.y, canastaMesh.position.z)
@@ -80,25 +73,23 @@ canasta.children[0].children[1].updateMatrixWorld(true)
       w: canastaQuaternion.w
     })
   )
-  
-  
   world.createCollider(canastaShape,canastaBody)
+})
+
+const pista = await Loader.loadModel(scene, 'pistabasket',true)
+console.log(pista)
+pista.children.forEach(async (children:any)=>{
+console.log(children)
+  children.receiveShadow = true
+  let pistaBody = await Ballz.createBody(world, children.geometry, children.position,500, true) as RAPIER.RigidBody
+})
 //#endregion LOAD MODELS
 
 
 
 // #region CAMERA & RENDERER
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000)
-// camera.position.x = 0.75
-// camera.position.y = 1.3
-// camera.position.z = 2.3
 
-//looking how balls fall inside cacharro
-// camera.position.x = 1.63
-// camera.position.y = 2.3
-// camera.position.z = 2.97
-
-//almost floor height
 camera.position.x = 0.5
 camera.position.y = 1.86
 camera.position.z = 3
@@ -243,7 +234,7 @@ const mangoPoints = new Float32Array(mangoMesh.geometry.attributes.position.arra
 const mangoindices = new Uint32Array((mangoMesh.geometry.index as THREE.BufferAttribute).array)
 const mangoShape = (RAPIER.ColliderDesc.trimesh(new Float32Array(mangoPoints),new Uint32Array(mangoindices))as RAPIER.ColliderDesc).setMass(0)
 world.createCollider(mangoShape,mangoBody)
-dynamicBodies.push([mango, mangoBody])
+// dynamicBodies.push([mango, mangoBody])
 // #endregion
 
 
@@ -257,11 +248,11 @@ const floorMaterial = new THREE.MeshPhysicalMaterial({
 const floor = new THREE.Mesh(new THREE.PlaneGeometry(floorSize.x,floorSize.z), floorMaterial)
 floor.rotateX(-Math.PI/2)
 floor.receiveShadow = true
-scene.add(floor)
+// scene.add(floor)
 //FLOOR COLLIDER
 const floorBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(0, -0.0999, 0))
 const floorShape = RAPIER.ColliderDesc.cuboid(floorSize.x/2, 0.1, floorSize.z/2)
-world.createCollider(floorShape, floorBody)
+// world.createCollider(floorShape, floorBody)
 // #endregion FLOOR
 
 
@@ -292,14 +283,6 @@ plataformas.forEach(plataforma=>{
 })
 //#endregion
 
-const barrilParts = barril.children[0].children
-const barrilMetalMaterial  = (barrilParts[1] as THREE.Mesh).material 
-const barrilWoodMaterial  = (barrilParts[0] as THREE.Mesh).material 
-console.log(barril.children[0].children)
-console.log(barrilMetalMaterial,barrilWoodMaterial)
-
-const barrilManual = new THREE.Mesh((barrilParts[0] as THREE.Mesh).geometry, bolaMesh.material)
-// scene.add(barrilParts) 
 
 
 // #region COIN 
@@ -343,8 +326,8 @@ for(let theta=Math.PI/3; theta<2*Math.PI; theta= theta+angleStep){
     let material = bolaMaterial.clone()
     material.roughness = Math.random()*0.6+0.1
     // TODO: probably collider sometimes fail because it should be slightly bigger than the mesh
-    let ball = await Ballz.addNewBall(scene,world,ballRadius,position,undefined, material)
-    dynamicBodies.push(ball)
+    // let ball = await Ballz.addNewBall(scene,world,ballRadius,position,undefined, material)
+    // dynamicBodies.push(ball)
   }
 }
 // #endregion BALLZ
@@ -353,7 +336,7 @@ for(let theta=Math.PI/3; theta<2*Math.PI; theta= theta+angleStep){
 
 
 // #region CONTROLS
-const moveSpeed = 6  
+const moveSpeed = 15  
 const moveState = {
     forward: false,
     backward: false,
@@ -374,8 +357,8 @@ const jumpState = {
     velocity: 0,
     isGrounded: true,
     jumpCount: 0,
-    maxJumps: 2, 
-    initialJumpSpeed: 5,
+    maxJumps: Infinity, 
+    initialJumpSpeed: 8,
     gravity: 9.81
 }
 document.addEventListener('mousemove',(event)=>{
@@ -480,7 +463,7 @@ dragCoinControls.addEventListener( 'dragend', function ( event ) {
 // #endregion COIN CONTROLS
 
 
-
+let balls:any = []
 
 //#region SHOOT CONTROLS
 window.addEventListener('mousedown', async (event:any) => {
@@ -513,10 +496,17 @@ window.addEventListener('mousedown', async (event:any) => {
     // let newbarril = await Ballz.addNewObject(scene, world,(barrilParts[0] as THREE.Mesh).geometry,infrontOfCamera,5,bolaMaterial )
     // newbarril[1].applyImpulse(new RAPIER.Vector3(force*shootingDirection.x, force*shootingDirection.y, force*shootingDirection.z),true)
     // dynamicBodies.push(newbarril)
-    const balonparts = balon.children[0].children
-    let newbalon = await Ballz.addNewObject(scene, world,(balonparts[0] as THREE.Mesh).geometry,infrontOfCamera,5,bolaMaterial )
+    const balonparts = balon.children[0]
+    let newbalon = await Ballz.addNewBall(scene, world,0.9,infrontOfCamera,force/15,(balonparts as THREE.Mesh).material as THREE.MeshPhysicalMaterial )
     newbalon[1].applyImpulse(new RAPIER.Vector3(force*shootingDirection.x, force*shootingDirection.y, force*shootingDirection.z),true)
-    dynamicBodies.push(newbalon)
+    balls.forEach((ball:any)=>{
+      scene.remove(ball[0])
+      scene.remove(ball[1])
+      world.removeCollider(ball[2], true)
+    })
+    dynamicBodies = []
+    dynamicBodies.push([newbalon[0], newbalon[1]])
+    balls.push(newbalon)
   }
 })
 // #endregion SHOOT CONTROLS
