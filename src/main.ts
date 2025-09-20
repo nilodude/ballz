@@ -272,7 +272,7 @@ console.log(barril.children[0].children)
 console.log(barrilMetalMaterial,barrilWoodMaterial)
 
 const barrilManual = new THREE.Mesh((barrilParts[0] as THREE.Mesh).geometry, bolaMesh.material)
-// scene.add(barrilManual) 
+// scene.add(barrilParts) 
 
 
 // #region COIN 
@@ -479,13 +479,13 @@ window.addEventListener('mousedown', async (event:any) => {
     )
     
     const force = 60
-    // let ball = await Ballz.addNewBall(scene,world,1,infrontOfCamera,5, material) as [THREE.Object3D<THREE.Object3DEventMap>, RAPIER.RigidBody]
-    // ball[1].applyImpulse(new RAPIER.Vector3(force*shootingDirection.x, force*shootingDirection.y, force*shootingDirection.z),true)
-    // dynamicBodies.push(ball)
+    let ball = await Ballz.addNewBall(scene,world,1,infrontOfCamera,5, material) as [THREE.Object3D<THREE.Object3DEventMap>, RAPIER.RigidBody]
+    ball[1].applyImpulse(new RAPIER.Vector3(force*shootingDirection.x, force*shootingDirection.y, force*shootingDirection.z),true)
+    dynamicBodies.push(ball)
 
-    let barril = await Ballz.addNewObject(scene, world,barrilManual.geometry,infrontOfCamera,5,bolaMaterial )
-    barril[1].applyImpulse(new RAPIER.Vector3(force*shootingDirection.x, force*shootingDirection.y, force*shootingDirection.z),true)
-    dynamicBodies.push(barril)
+    // let newbarril = await Ballz.addNewObject(scene, world,(barrilParts[0] as THREE.Mesh).geometry,infrontOfCamera,5,bolaMaterial )
+    // newbarril[1].applyImpulse(new RAPIER.Vector3(force*shootingDirection.x, force*shootingDirection.y, force*shootingDirection.z),true)
+    // dynamicBodies.push(newbarril)
   }
 })
 // #endregion SHOOT CONTROLS
