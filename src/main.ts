@@ -37,7 +37,7 @@ let escenario = new THREE.Group<THREE.Object3DEventMap>()
 let plataformas: THREE.Object3D<THREE.Object3DEventMap>[]  = []
 let barril = new THREE.Group<THREE.Object3DEventMap>()
 // maybe worth it to finetune MeshPhysicalMaterial to look like glass, but for that to work, scene needs ENVIRONMENT lighting setup correctly
-bola = await Loader.loadModel(scene,'bola2', false)
+bola = await Loader.loadModel(scene,'bola2', true)
 cacharro = await Loader.loadModel(scene,'cacharro2', true)
 mango  = await Loader.loadModel(scene,'mango')
 mango.position.y += 1.22293
@@ -489,10 +489,20 @@ window.addEventListener('mousedown', async (event:any) => {
     )
     
     const force = 100
-    
     const balonparts = balon.children[0]
     let newbalon = await Ballz.addNewBall(scene, world,0.75,infrontOfCamera,force/15,(balonparts as THREE.Mesh).material as THREE.MeshPhysicalMaterial )
     newbalon[1].applyImpulse(new RAPIER.Vector3(force*shootingDirection.x, force*shootingDirection.y, force*shootingDirection.z),true)
+    const rightVector = new THREE.Vector3()
+    rightVector.crossVectors(shootingDirection, new THREE.Vector3(0, 1, 0)).normalize()
+    const spinSpeed = 15 
+    const randomVariation = 0.2 // 20% variation in spin
+    const randomSpin = spinSpeed * (1 + (Math.random() - 0.5) * randomVariation)
+    newbalon[1].setAngvel(new RAPIER.Vector3(
+        rightVector.x * randomSpin,
+        rightVector.y * randomSpin,
+        rightVector.z * randomSpin
+    ), true)
+
     balls.forEach((ball:any)=>{
       scene.remove(ball[0])
       scene.remove(ball[1])
