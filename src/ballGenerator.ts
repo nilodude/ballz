@@ -58,11 +58,27 @@ async function createBody(world: RAPIER.World,geometry:any,position: THREE.Vecto
     return body
 }
 
+async function createCrosshair( scene: THREE.Scene){
+    const material = new THREE.LineBasicMaterial( { color: 0x0000ff } );
+    const points = [];
+    const scale = 10
+    points.push( new THREE.Vector3( - scale, 0, 0 ) );
+    points.push( new THREE.Vector3( scale, 0, 0 ) );
+    points.push( new THREE.Vector3( 0, scale, 0 ) );
+    points.push( new THREE.Vector3( 0, -scale, 0 ) );
+    points.push( new THREE.Vector3( 0, 0, scale ) );
+    points.push( new THREE.Vector3( 0, 0,scale ) );
+    
+    const geometry = new THREE.BufferGeometry().setFromPoints( points );
+    const line = new THREE.Line( geometry, material );
+    scene.add( line );
+}
 
 export {
     createBallMesh,
     createBallBody,
     addNewBall,
+    createCrosshair,
     addNewObject
 }
 

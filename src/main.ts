@@ -60,7 +60,7 @@ barriles  = await Loader.loadModel(scene,'barriles', false)
 
 
 // const imagen = await Loader.loadImage(scene, 'f3.jpg',true)
-
+let balon  = await Loader.loadModel(scene,'nilobasketball', true)
 
 let canasta  = await Loader.loadModel(scene,'CANASTA', true)
 
@@ -192,6 +192,7 @@ light2Folder.add(light2.position, 'z', -10000,10000)
 // #endregion GUI & STATS
 
 
+// Ballz.createCrosshair(scene)
 
 
 //#region BOLA COLLIDER
@@ -505,13 +506,17 @@ window.addEventListener('mousedown', async (event:any) => {
     )
     
     const force = 100
-    let ball = await Ballz.addNewBall(scene,world,1,infrontOfCamera,10, material) as [THREE.Object3D<THREE.Object3DEventMap>, RAPIER.RigidBody]
-    ball[1].applyImpulse(new RAPIER.Vector3(force*shootingDirection.x, force*shootingDirection.y, force*shootingDirection.z),true)
-    dynamicBodies.push(ball)
+    // let ball = await Ballz.addNewBall(scene,world,1,infrontOfCamera,10, material) as [THREE.Object3D<THREE.Object3DEventMap>, RAPIER.RigidBody]
+    // ball[1].applyImpulse(new RAPIER.Vector3(force*shootingDirection.x, force*shootingDirection.y, force*shootingDirection.z),true)
+    // dynamicBodies.push(ball)
 
     // let newbarril = await Ballz.addNewObject(scene, world,(barrilParts[0] as THREE.Mesh).geometry,infrontOfCamera,5,bolaMaterial )
     // newbarril[1].applyImpulse(new RAPIER.Vector3(force*shootingDirection.x, force*shootingDirection.y, force*shootingDirection.z),true)
     // dynamicBodies.push(newbarril)
+    const balonparts = balon.children[0].children
+    let newbalon = await Ballz.addNewObject(scene, world,(balonparts[0] as THREE.Mesh).geometry,infrontOfCamera,5,bolaMaterial )
+    newbalon[1].applyImpulse(new RAPIER.Vector3(force*shootingDirection.x, force*shootingDirection.y, force*shootingDirection.z),true)
+    dynamicBodies.push(newbalon)
   }
 })
 // #endregion SHOOT CONTROLS
@@ -529,7 +534,8 @@ function animate() {
   requestAnimationFrame(animate)
 
   delta = clock.getDelta()
-  // Handle WASD movement
+
+  // #region Handle WASD movement
   if (moveState.forward || moveState.backward || moveState.left || moveState.right) {
     // Calculate forward direction from camera's rotation
     const forward = new THREE.Vector3(0, 0, -1)
@@ -558,7 +564,7 @@ function animate() {
       }
       jumpState.velocity = 0
   }  
-
+  //#endregion
 
   world.timestep = Math.min(delta, 0.1)
   world.step()
@@ -582,6 +588,8 @@ function animate() {
   rapierDebugRenderer.update()
   // orbitControls.update(delta)
   // flyControls.update( delta );
+
+
   renderer.render(scene, camera)
   stats.update()
 }
