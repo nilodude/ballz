@@ -26,11 +26,11 @@ scene.add(new THREE.AxesHelper(5))
 // scene.environment = environmentTexture
 scene.backgroundBlurriness = 0
 const hdriLoader = new RGBELoader();
-hdriLoader.load('./space.hdr', function (texture) {
-    texture.mapping = THREE.EquirectangularReflectionMapping;
-    scene.background = texture;
-    scene.environment = texture;        
-});
+// hdriLoader.load('./space.hdr', function (texture) {
+//     texture.mapping = THREE.EquirectangularReflectionMapping;
+//     scene.background = texture;
+//     scene.environment = texture;        
+// });
 const rapierDebugRenderer = new RapierDebugRenderer(scene, world)
 // Loader.loadSun(scene)
 
@@ -48,12 +48,12 @@ mango  = await Loader.loadModel(scene,'mango')
 mango.position.y += 1.22293
 mango.rotation.z -= Math.PI/2
 
-escenario  = await Loader.loadModel(scene,'escenario001', false)
-plataformas = escenario.children.filter(c=>c.name.includes('Cube') /*||c.name =='fondo'*/)
+// escenario  = await Loader.loadModel(scene,'escenario001', false)
+// plataformas = escenario.children.filter(c=>c.name.includes('Cube') /*||c.name =='fondo'*/)
 
 barril  = await Loader.loadModel(scene,'barril', false)
 
-// const imagen = await Loader.loadImage(scene, 'f3.jpg',true)
+
 let balon  = await Loader.loadModel(scene,'nilobasketball', false)
 
 let canasta  = await Loader.loadModel(scene,'CANASTA', true)
@@ -81,13 +81,17 @@ canasta.children[0].children.forEach(children=>{
   world.createCollider(canastaShape,canastaBody)
 })
 
-const pista = await Loader.loadModel(scene, 'pistabasket',true)
-console.log(pista)
-pista.children.forEach(async (children:any)=>{
-console.log(children)
-  children.receiveShadow = true
-  let pistaBody = await Ballz.createBody(world, children.geometry, children.position,500, true) as RAPIER.RigidBody
-})
+// const pista = await Loader.loadModel(scene, 'pistabasket',true)
+// console.log(pista)
+// pista.children.forEach(async (children:any)=>{
+// console.log(children)
+//   children.receiveShadow = true
+//   let pistaBody = await Ballz.createBody(world, children.geometry, children.position,500, true) as RAPIER.RigidBody
+// })
+
+
+const imagen = await Loader.loadImage(scene, 'f3.jpg',true,20)
+
 //#endregion LOAD MODELS
 
 
@@ -96,7 +100,7 @@ console.log(children)
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000)
 
 camera.position.x = 0.5
-camera.position.y = 1.86
+camera.position.y = 1
 camera.position.z = 3
 
 
@@ -607,8 +611,8 @@ function animate() {
   
   jumpState.velocity -= jumpState.gravity * delta
   camera.position.y += jumpState.velocity * delta
-  if (camera.position.y <= 1.86) { 
-      camera.position.y = 1.86
+  if (camera.position.y <= 1) { 
+      camera.position.y = 1
       if (!jumpState.isGrounded) {
           jumpState.isGrounded = true
           jumpState.jumpCount = 0 
