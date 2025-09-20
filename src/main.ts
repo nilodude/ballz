@@ -57,6 +57,10 @@ barriles  = await Loader.loadModel(scene,'barriles', false)
 // TODO: README: when loading all scene, positions are correct, but no materials
 // TODO: README: when loading individual children, position is (0,0,0) and still no material
 // scene.add(barriles.children[25].children[0])
+
+
+const imagen = await Loader.loadImage(scene, 'f3.jpg',true)
+
 //#endregion LOAD MODELS
 
 
