@@ -10,7 +10,7 @@ import * as Loader from '../src/loader'
 import * as Ballz from '../src/ballGenerator'
 import RAPIER from '@dimforge/rapier3d-compat'
 import { RapierDebugRenderer } from '../src/debugRenderer'
-
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 await RAPIER.init() // This line is only needed if using the compat version
 
 const gravity = new RAPIER.Vector3(0.0, -9.81, 0.0)
@@ -21,13 +21,18 @@ let dynamicBodies: [THREE.Object3D, RAPIER.RigidBody][] = []
 //SCENE
 const scene = new THREE.Scene()
 scene.add(new THREE.AxesHelper(5))
-let environmentTexture = new THREE.CubeTextureLoader().setPath('./').load(['space.hdr'])
-scene.background = environmentTexture
-scene.environment = environmentTexture
+// let environmentTexture = new THREE.CubeTextureLoader().setPath('./').load(['space.hdr'])
+// scene.background = environmentTexture
+// scene.environment = environmentTexture
 scene.backgroundBlurriness = 0
-
+const hdriLoader = new RGBELoader();
+hdriLoader.load('./space.hdr', function (texture) {
+    texture.mapping = THREE.EquirectangularReflectionMapping;
+    scene.background = texture;
+    scene.environment = texture;        
+});
 const rapierDebugRenderer = new RapierDebugRenderer(scene, world)
-
+// Loader.loadSun(scene)
 
 //#region LOAD MODELS
 let bola = new THREE.Group<THREE.Object3DEventMap>()
@@ -88,7 +93,7 @@ console.log(children)
 
 
 // #region CAMERA & RENDERER
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000)
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000)
 
 camera.position.x = 0.5
 camera.position.y = 1.86
@@ -133,9 +138,8 @@ window.addEventListener('resize', () => {
 
 
 
-
 // #region LIGHTS
-const light1 = new THREE.DirectionalLight( 0xfff9d8, 1 );
+const light1 = new THREE.DirectionalLight( 0xfff9d8, 3 );
 light1.position.z += 1000;
 light1.position.y += 300;
 light1.castShadow = true;
@@ -159,6 +163,59 @@ light2.shadow.camera.far = 10000;
 
 
 
+const sunEmissive = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(255, 8),
+    new THREE.MeshBasicMaterial({
+        color: 0xffff00,
+        transparent: true,
+        opacity: 1,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+    })
+);
+
+const middleGlow = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(260, 8),
+    new THREE.MeshBasicMaterial({
+        color: 0xffaa00,
+        transparent: true,
+        opacity: 0.8,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+    })
+);
+
+const corona1 = new THREE.Mesh(
+   new THREE.IcosahedronGeometry(280, 8),
+    new THREE.MeshBasicMaterial({
+        color: 0xffffcc,
+        transparent: true,
+        opacity: 0.6,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+    })
+);
+const sunGeometry = new THREE.IcosahedronGeometry(250, 8);
+const sunMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 1,
+    depthWrite: false
+});
+const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+sun.position.copy(light1.position);
+sun.add(sunEmissive);
+sun.add(middleGlow);
+sun.add(corona1);
+
+
+const sunPointLight = new THREE.PointLight(0xffffcc, 20, 2000);
+sun.add(sunPointLight);
+
+scene.add(sun);
+
+// const ambientLight = new THREE.AmbientLight(0xffffcc, 0.5);
+// scene.add(ambientLight);
 
 
 // #region GUI & STATS
@@ -578,6 +635,12 @@ function animate() {
     }
     // dynamicBodies[i][1].sleep()  //uncomment this line to make balls stop in the air
   }
+  if (sunEmissive.material instanceof THREE.MeshBasicMaterial) {
+        sunEmissive.material.opacity = 0.9 + Math.sin(delta * 2) * 0.1;
+    }
+    // if (corona.material instanceof THREE.MeshBasicMaterial) {
+    //     corona.material.opacity = 0.3 + Math.sin(delta * 3) * 0.1;
+    // }
   // camera.position.lerp(new THREE.Vector3(0.5,0.5,3), delta/17)
   // rapierDebugRenderer.update()
   // orbitControls.update(delta)

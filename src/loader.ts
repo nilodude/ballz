@@ -17,21 +17,13 @@ async function loadModel(scene: THREE.Scene,path: string, add:boolean = true){
         // scene.add(node)
         if(add)console.log(path,node.name,node)
     })
-   
     if(add){
         scene.add(model)
     }
-        
     return model
 }
 
-// instantiate a loader
 const imageloader = new THREE.ImageBitmapLoader();
-
-// set options if needed
-// imageloader.setOptions( { imageOrientation: 'flipY' } );
-
-
 async function loadImage(scene: THREE.Scene,path: string, add:boolean = true){
     let image = new THREE.Mesh( );
     imageloader.load(path,
@@ -55,14 +47,15 @@ async function loadImage(scene: THREE.Scene,path: string, add:boolean = true){
     return image
 }
 
-async function loadCollider(){
-
+async function loadTexture(name:any, ext:any){
+    const texture = new THREE.TextureLoader().load('./' + name + '.' + ext );
+    if(name=='saturn_ring'){
+        texture.rotation = Math.PI/2;
+    }
+    return texture;
 }
-
-
-
 
 export {
     loadModel,
-    loadImage
+    loadImage,
 }
