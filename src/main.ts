@@ -59,8 +59,30 @@ barriles  = await Loader.loadModel(scene,'barriles', false)
 // scene.add(barriles.children[25].children[0])
 
 
-const imagen = await Loader.loadImage(scene, 'f3.jpg',true)
+// const imagen = await Loader.loadImage(scene, 'f3.jpg',true)
 
+
+let canasta  = await Loader.loadModel(scene,'CANASTA', true)
+
+canasta.children[0].children[1].updateMatrixWorld(true)
+  const canastaMesh = canasta.children[0].children[1] as THREE.Mesh
+  const canastapoints = new Float32Array(canastaMesh.geometry.attributes.position.array)
+  const canastaindices = new Uint32Array((canastaMesh.geometry.index as THREE.BufferAttribute).array)
+  const canastaShape = (RAPIER.ColliderDesc.trimesh(new Float32Array(canastapoints),new Uint32Array(canastaindices))as RAPIER.ColliderDesc).setMass(120)
+  
+  const canastaQuaternion = new THREE.Quaternion().setFromEuler(canastaMesh.rotation);
+  const canastaBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed()
+    .setTranslation(canastaMesh.position.x, canastaMesh.position.y, canastaMesh.position.z)
+    .setRotation({
+      x: canastaQuaternion.x,
+      y: canastaQuaternion.y,
+      z: canastaQuaternion.z,
+      w: canastaQuaternion.w
+    })
+  )
+  
+  
+  world.createCollider(canastaShape,canastaBody)
 //#endregion LOAD MODELS
 
 
@@ -263,7 +285,7 @@ plataformas.forEach(plataforma=>{
   const points = new Float32Array(plataformaMesh.geometry.attributes.position.array)
   const indices = new Uint32Array((plataformaMesh.geometry.index as THREE.BufferAttribute).array)
   const plataformaShape = (RAPIER.ColliderDesc.trimesh(new Float32Array(points),new Uint32Array(indices))as RAPIER.ColliderDesc).setMass(120)
-  world.createCollider(plataformaShape,plataformaBody)
+  // world.createCollider(plataformaShape,plataformaBody)
   
   // scene.add(plataforma)
 })
@@ -482,8 +504,8 @@ window.addEventListener('mousedown', async (event:any) => {
       shootingDirection.clone().multiplyScalar(offsetDistance)
     )
     
-    const force = 60
-    let ball = await Ballz.addNewBall(scene,world,1,infrontOfCamera,5, material) as [THREE.Object3D<THREE.Object3DEventMap>, RAPIER.RigidBody]
+    const force = 100
+    let ball = await Ballz.addNewBall(scene,world,1,infrontOfCamera,10, material) as [THREE.Object3D<THREE.Object3DEventMap>, RAPIER.RigidBody]
     ball[1].applyImpulse(new RAPIER.Vector3(force*shootingDirection.x, force*shootingDirection.y, force*shootingDirection.z),true)
     dynamicBodies.push(ball)
 

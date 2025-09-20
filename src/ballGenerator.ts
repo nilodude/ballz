@@ -17,7 +17,7 @@ async function createBallMesh(ballRadius:number, material: THREE.MeshPhysicalMat
 
 async function createBallBody(world: RAPIER.World, ballRadius: number,position: THREE.Vector3, mass:number){     
       const ballBody = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(position.x, position.y, position.z).setCanSleep(true))
-      const ballShape = RAPIER.ColliderDesc.ball(ballRadius).setMass(mass).setRestitution(0.65).setFriction(1)
+      const ballShape = RAPIER.ColliderDesc.ball(ballRadius).setMass(mass).setRestitution(0.85).setFriction(1)
       world.createCollider(ballShape, ballBody)
       ballBody.sleep()
       return ballBody
