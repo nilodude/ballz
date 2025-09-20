@@ -17,7 +17,7 @@ async function createBallMesh(ballRadius:number, material: THREE.MeshPhysicalMat
 
 async function createBallBody(world: RAPIER.World, ballRadius: number,position: THREE.Vector3, mass:number){     
       const ballBody = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(position.x, position.y, position.z).setCanSleep(true))
-      const ballShape = RAPIER.ColliderDesc.ball(ballRadius).setMass(mass).setRestitution(0.95).setFriction(1)
+      const ballShape = RAPIER.ColliderDesc.ball(ballRadius).setMass(mass).setRestitution(0.85).setFriction(1)
       const collider = world.createCollider(ballShape, ballBody)
       ballBody.sleep()
       return {body: ballBody, collider: collider}
@@ -53,7 +53,7 @@ async function createBody(world: RAPIER.World,geometry:any,position: THREE.Vecto
     const body = fixed ? world.createRigidBody(RAPIER.RigidBodyDesc.fixed()) : world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(position.x, position.y, position.z).setCanSleep(true))
     const points = new Float32Array(geometry.attributes.position.array)
     const indices = new Uint32Array((geometry.index as THREE.BufferAttribute).array)
-    const shape = (RAPIER.ColliderDesc.trimesh(new Float32Array(points),new Uint32Array(indices))as RAPIER.ColliderDesc).setMass(mass)
+    const shape = (RAPIER.ColliderDesc.trimesh(new Float32Array(points),new Uint32Array(indices))as RAPIER.ColliderDesc).setMass(mass).setRestitution(0).setFriction(1)
     world.createCollider(shape,body)
     body.sleep()
     return body

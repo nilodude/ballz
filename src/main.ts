@@ -359,7 +359,7 @@ const jumpState = {
     jumpCount: 0,
     maxJumps: Infinity, 
     initialJumpSpeed: 8,
-    gravity: 9.81
+    gravity: 10
 }
 document.addEventListener('mousemove',(event)=>{
   mouseMovement = {x:event.movementX, y:event.movementY}
@@ -489,15 +489,9 @@ window.addEventListener('mousedown', async (event:any) => {
     )
     
     const force = 100
-    // let ball = await Ballz.addNewBall(scene,world,1,infrontOfCamera,10, material) as [THREE.Object3D<THREE.Object3DEventMap>, RAPIER.RigidBody]
-    // ball[1].applyImpulse(new RAPIER.Vector3(force*shootingDirection.x, force*shootingDirection.y, force*shootingDirection.z),true)
-    // dynamicBodies.push(ball)
-
-    // let newbarril = await Ballz.addNewObject(scene, world,(barrilParts[0] as THREE.Mesh).geometry,infrontOfCamera,5,bolaMaterial )
-    // newbarril[1].applyImpulse(new RAPIER.Vector3(force*shootingDirection.x, force*shootingDirection.y, force*shootingDirection.z),true)
-    // dynamicBodies.push(newbarril)
+    
     const balonparts = balon.children[0]
-    let newbalon = await Ballz.addNewBall(scene, world,0.9,infrontOfCamera,force/15,(balonparts as THREE.Mesh).material as THREE.MeshPhysicalMaterial )
+    let newbalon = await Ballz.addNewBall(scene, world,0.75,infrontOfCamera,force/15,(balonparts as THREE.Mesh).material as THREE.MeshPhysicalMaterial )
     newbalon[1].applyImpulse(new RAPIER.Vector3(force*shootingDirection.x, force*shootingDirection.y, force*shootingDirection.z),true)
     balls.forEach((ball:any)=>{
       scene.remove(ball[0])
@@ -575,7 +569,7 @@ function animate() {
     // dynamicBodies[i][1].sleep()  //uncomment this line to make balls stop in the air
   }
   // camera.position.lerp(new THREE.Vector3(0.5,0.5,3), delta/17)
-  rapierDebugRenderer.update()
+  // rapierDebugRenderer.update()
   // orbitControls.update(delta)
   // flyControls.update( delta );
 
