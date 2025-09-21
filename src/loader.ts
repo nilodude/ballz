@@ -224,9 +224,6 @@ async function loadElementsAsShader(data: any, scene: THREE.Scene, config: RugSh
         side: THREE.DoubleSide
       });
 
-      
-           
-
     const mesh = new THREE.InstancedMesh(instancedGeometry, material, count);
     mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     scene.add(mesh);
@@ -355,11 +352,126 @@ async function loadRugWithShader(scene: THREE.Scene, imagePath: string,add:boole
     });
 }
 
+async function loadRugWithInstancedShader(
+    scene: THREE.Scene, 
+    imagePath: string, 
+    config: RugShaderConfig,
+    downsample: number 
+): Promise<{mesh: THREE.InstancedMesh, positions: Float32Array, instancePosition: THREE.InstancedBufferAttribute}> {
+    return new Promise((resolve) => {
+        const imageLoader = new THREE.ImageLoader();
+        imageLoader.load(imagePath, (image) => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d')!;
+            canvas.width = image.width;
+            canvas.height = image.height;
+            ctx.drawImage(image, 0, 0);
+            const imageData = ctx.getImageData(0, 0, image.width, image.height);
+
+            const rugWidth = config.spacing/downsample * image.width;
+            const rugHeight = config.spacing/downsample * image.height;
+            const offsetX = -rugWidth / 2;
+            const offsetZ = -rugHeight / 2;
+
+            const cylinderGeometry = new THREE.CylinderGeometry(
+                config.threadWidth/2,
+                config.threadWidth/2,
+                config.threadHeight,
+                11,
+                1,
+                false
+            );
+
+            const instancedGeometry = new THREE.InstancedBufferGeometry();
+            instancedGeometry.copy(cylinderGeometry as any);
+
+            const count = Math.floor((image.width * image.height) / (downsample * downsample));
+            
+            const positions = new Float32Array(count * 3);
+            const colors = new Float32Array(count * 3);
+
+            let instanceCount = 0;
+            for(let x = 0; x < image.width; x += downsample) {
+                for(let z = 0; z < image.height; z += downsample) {
+                    const i = (z * image.width + x) * 4;
+                    const a = imageData.data[i + 3];
+
+                    if(a > 0) { 
+                        positions[instanceCount * 3 + 0] = offsetX + x *  config.threadWidth/downsample;
+                        positions[instanceCount * 3 + 1] = config.threadHeight/2 + (Math.random()/8);
+                        positions[instanceCount * 3 + 2] = offsetZ + z *  config.threadWidth/downsample;
+                        colors[instanceCount * 3 + 0] = imageData.data[i] / 255;
+                        colors[instanceCount * 3 + 1] = imageData.data[i + 1] / 255;
+                        colors[instanceCount * 3 + 2] = imageData.data[i + 2] / 255;
+                        instanceCount++;
+                    }
+                }
+            }
+
+            const instancePosition = new THREE.InstancedBufferAttribute(positions.slice(0, instanceCount * 3), 3);
+            const instanceColor = new THREE.InstancedBufferAttribute(colors.slice(0, instanceCount * 3), 3);
+            instancedGeometry.setAttribute('instancePosition', instancePosition);
+            instancedGeometry.setAttribute('instanceColor', instanceColor);
+
+            const material = new THREE.ShaderMaterial({
+                vertexShader: `
+                    attribute vec3 instancePosition;
+                    attribute vec3 instanceColor;
+                    varying vec3 vNormal;
+                    varying vec3 vViewPosition;
+                    varying vec3 vColor;
+
+                    void main() {
+                        vec3 transformed = position + instancePosition;
+                        vNormal = normalMatrix * normal;
+                        vColor = instanceColor;
+                        vec4 mvPosition = modelViewMatrix * vec4(transformed, 1.0);
+                        vViewPosition = -mvPosition.xyz;
+                        gl_Position = projectionMatrix * mvPosition;
+                    }
+                `,
+                fragmentShader: `
+                    varying vec3 vNormal;
+                    varying vec3 vViewPosition;
+                    varying vec3 vColor;
+
+                    void main() {
+                        vec3 normal = normalize(vNormal);
+                        vec3 viewDir = normalize(vViewPosition);
+                        vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
+                        
+                        float diff = max(dot(normal, lightDir), 0.0);
+                        vec3 ambient = vColor * 0.3;
+                        vec3 diffuse = vColor * diff;
+                        
+                        vec3 h = normalize(lightDir + viewDir);
+                        float specular = pow(max(dot(normal, h), 0.0), 32.0) * 0.2;
+                        
+                        vec3 finalColor = mix(ambient, diffuse, 0.7) + specular;
+                        gl_FragColor = vec4(finalColor, 1.0);
+                    }
+                `,
+                side: THREE.DoubleSide
+            });
+
+            const mesh = new THREE.InstancedMesh(instancedGeometry, material, instanceCount);
+            mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+            scene.add(mesh);
+
+            resolve({
+                mesh: mesh,
+                positions: positions,
+                instancePosition: instancePosition
+            });
+        });
+    });
+}
 
 export {
     loadModel,
     loadImage,
     loadRugWithShader,
     loadElementsAsShader,
+    loadRugWithInstancedShader,
     type RugShaderConfig
 }

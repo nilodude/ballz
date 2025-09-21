@@ -31,7 +31,7 @@ hdriLoader.load('./space.hdr', function (texture) {
 const rapierDebugRenderer = new RapierDebugRenderer(scene, world)
 // Loader.loadSun(scene)
 
-const playerHeight = 1.2
+const playerHeight = 1.5
 
 
 //#region LOAD MODELS
@@ -43,11 +43,13 @@ const threadConfig = {
     threadHeight: 0.15,
     spacing: threadWidth
 }
-const rugs = await Loader.loadRugWithShader(scene, 'f3.jpg', false, threadConfig, 2);
+// const rugs = await Loader.loadRugWithShader(scene, 'f3.jpg', false, threadConfig, 2);
 
-console.log(rugs)
+// console.log(rugs)
 
-await Loader.loadElementsAsShader(rugs.children, scene,threadConfig)
+// await Loader.loadElementsAsShader(rugs.children, scene,threadConfig)
+await Loader.loadRugWithInstancedShader(scene, 'f3.jpg', threadConfig, 2)
+
 //#endregion LOAD MODELS
 
 
