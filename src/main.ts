@@ -49,7 +49,7 @@ const rugs = await Loader.loadRugWithShader(scene, 'f3.jpg', false, {
 
 console.log(rugs)
 
-await Loader.loadElementsAsShader(rugs.children.map(c=>c.position), scene)
+await Loader.loadElementsAsShader(rugs.children, scene)
 //#endregion LOAD MODELS
 
 

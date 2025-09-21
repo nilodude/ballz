@@ -150,13 +150,14 @@ async function loadElementsAsShader(data: any, scene: THREE.Scene, config: RugSh
     const colors = new Float32Array(count * 3);
 
     for (let i = 0; i < count; i++) {
-        positions[i * 3 + 0] = data[i].x;
-        positions[i * 3 + 1] = data[i].y;
-        positions[i * 3 + 2] = data[i].z;
+        positions[i * 3 + 0] = data[i].position.x;
+        positions[i * 3 + 1] = data[i].position.y;
+        positions[i * 3 + 2] = data[i].position.z;
 
         const cylinder = data[i];
         // if (cylinder.material instanceof THREE.MeshPhysicalMaterial) {
         //     debugger
+        // TODO: cylinder.material is actually already shadermaterial
             colors[i * 3 + 0] = cylinder.material.color.r;
             colors[i * 3 + 1] = cylinder.material.color.g;
             colors[i * 3 + 2] = cylinder.material.color.b;
