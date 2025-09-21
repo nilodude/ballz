@@ -155,13 +155,17 @@ async function loadElementsAsShader(data: any, scene: THREE.Scene, config: RugSh
         positions[i * 3 + 2] = data[i].position.z;
 
         const cylinder = data[i];
-        // if (cylinder.material instanceof THREE.MeshPhysicalMaterial) {
-        //     debugger
-        // TODO: cylinder.material is actually already shadermaterial
-            colors[i * 3 + 0] = cylinder.material.color.r;
-            colors[i * 3 + 1] = cylinder.material.color.g;
-            colors[i * 3 + 2] = cylinder.material.color.b;
-        // }
+        if (cylinder.material instanceof THREE.ShaderMaterial && cylinder.material.uniforms.color) {
+            const color = cylinder.material.uniforms.color.value;
+            colors[i * 3 + 0] = color.x;  // R component
+            colors[i * 3 + 1] = color.y;  // G component
+            colors[i * 3 + 2] = color.z;  // B component
+        } else {
+            // Fallback in case uniforms are not available
+            colors[i * 3 + 0] = 1.0;
+            colors[i * 3 + 1] = 0.0;
+            colors[i * 3 + 2] = 1.0;
+        }
     }
 
     const instancePosition = new THREE.InstancedBufferAttribute(positions, 3);
@@ -200,9 +204,8 @@ async function loadElementsAsShader(data: any, scene: THREE.Scene, config: RugSh
             vec3 normal = normalize(vNormal);
             vec3 viewDir = normalize(vViewPosition);
             vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
-
             float diff = max(dot(normal, lightDir), 0.0);
-            vec3 ambient = vColor * 0.3;        // Use vColor instead of uniform
+            vec3 ambient = vColor * 0.9;        // Use vColor instead of uniform
             vec3 diffuse = vColor * diff;       // Use vColor instead of uniform
 
             vec3 h = normalize(lightDir + viewDir);
@@ -221,7 +224,7 @@ async function loadElementsAsShader(data: any, scene: THREE.Scene, config: RugSh
         //     uTexture: { value: texture } // Pasa la textura como uniform al shader
         // },
         vertexShader,
-        fragmentShader,
+        fragmentShader:fragmentShader,
         side: THREE.DoubleSide
       });
 
