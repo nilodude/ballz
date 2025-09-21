@@ -21,75 +21,22 @@ let dynamicBodies: [THREE.Object3D, RAPIER.RigidBody][] = []
 //SCENE
 const scene = new THREE.Scene()
 scene.add(new THREE.AxesHelper(5))
-// let environmentTexture = new THREE.CubeTextureLoader().setPath('./').load(['space.hdr'])
-// scene.background = environmentTexture
-// scene.environment = environmentTexture
 scene.backgroundBlurriness = 0
 const hdriLoader = new RGBELoader();
-// hdriLoader.load('./space.hdr', function (texture) {
-//     texture.mapping = THREE.EquirectangularReflectionMapping;
-//     scene.background = texture;
-//     scene.environment = texture;        
-// });
+hdriLoader.load('./space.hdr', function (texture) {
+    texture.mapping = THREE.EquirectangularReflectionMapping;
+    scene.background = texture;
+    scene.environment = texture;        
+});
 const rapierDebugRenderer = new RapierDebugRenderer(scene, world)
 // Loader.loadSun(scene)
 
+const playerHeight = 0.2
+
+
 //#region LOAD MODELS
-let bola = new THREE.Group<THREE.Object3DEventMap>()
-let cacharro = new THREE.Group<THREE.Object3DEventMap>()
-let mango = new THREE.Group<THREE.Object3DEventMap>()
-let escenario = new THREE.Group<THREE.Object3DEventMap>()
-let plataformas: THREE.Object3D<THREE.Object3DEventMap>[]  = []
-let barril = new THREE.Group<THREE.Object3DEventMap>()
-// maybe worth it to finetune MeshPhysicalMaterial to look like glass, but for that to work, scene needs ENVIRONMENT lighting setup correctly
-bola = await Loader.loadModel(scene,'bola2', true)
-cacharro = await Loader.loadModel(scene,'cacharro2', true)
-mango  = await Loader.loadModel(scene,'mango')
-mango.position.y += 1.22293
-mango.rotation.z -= Math.PI/2
 
-// escenario  = await Loader.loadModel(scene,'escenario001', false)
-// plataformas = escenario.children.filter(c=>c.name.includes('Cube') /*||c.name =='fondo'*/)
-
-barril  = await Loader.loadModel(scene,'barril', false)
-
-
-let balon  = await Loader.loadModel(scene,'nilobasketball', false)
-
-let canasta  = await Loader.loadModel(scene,'CANASTA', true)
-const bbox = new THREE.Box3();
-bbox.setFromObject(canasta.children[0]); // This will include all children
-
-const totalHeight = bbox.max.y - bbox.min.y;
-canasta.children[0].children.forEach(children=>{
-  children.updateMatrixWorld(true)
-  const canastaMesh = children as THREE.Mesh
-  canastaMesh.position.y = canastaMesh.position.y+totalHeight*0.3
-  const canastapoints = new Float32Array(canastaMesh.geometry.attributes.position.array)
-  const canastaindices = new Uint32Array((canastaMesh.geometry.index as THREE.BufferAttribute).array)
-  const canastaShape = (RAPIER.ColliderDesc.trimesh(new Float32Array(canastapoints),new Uint32Array(canastaindices))as RAPIER.ColliderDesc).setMass(120)
-  const canastaQuaternion = new THREE.Quaternion().setFromEuler(canastaMesh.rotation);
-  const canastaBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed()
-    .setTranslation(canastaMesh.position.x, canastaMesh.position.y, canastaMesh.position.z)
-    .setRotation({
-      x: canastaQuaternion.x,
-      y: canastaQuaternion.y,
-      z: canastaQuaternion.z,
-      w: canastaQuaternion.w
-    })
-  )
-  world.createCollider(canastaShape,canastaBody)
-})
-
-// const pista = await Loader.loadModel(scene, 'pistabasket',true)
-// console.log(pista)
-// pista.children.forEach(async (children:any)=>{
-// console.log(children)
-//   children.receiveShadow = true
-//   let pistaBody = await Ballz.createBody(world, children.geometry, children.position,500, true) as RAPIER.RigidBody
-// })
-
-
+let balon = await Loader.loadModel(scene, 'nilobasketball', false)
 const imagen = await Loader.loadImage(scene, 'f3.jpg',true,20)
 
 //#endregion LOAD MODELS
@@ -100,11 +47,8 @@ const imagen = await Loader.loadImage(scene, 'f3.jpg',true,20)
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000)
 
 camera.position.x = 0.5
-camera.position.y = 1
+camera.position.y = playerHeight
 camera.position.z = 3
-
-
-
 
 //RENDERER
 const renderer = new THREE.WebGLRenderer()
@@ -163,8 +107,6 @@ light2.shadow.mapSize.height = 2048;
 light2.shadow.camera.near = 0.1; // default
 light2.shadow.camera.far = 10000; 
 // scene.add(light2);
-// #endregion LIGHTS
-
 
 
 const sunEmissive = new THREE.Mesh(
@@ -218,8 +160,7 @@ sun.add(sunPointLight);
 
 scene.add(sun);
 
-// const ambientLight = new THREE.AmbientLight(0xffffcc, 0.5);
-// scene.add(ambientLight);
+// #endregion LIGHTS
 
 
 // #region GUI & STATS
@@ -244,61 +185,6 @@ light2Folder.add(light2.position, 'z', -10000,10000)
 // #endregion GUI & STATS
 
 
-// Ballz.createCrosshair(scene)
-
-
-//#region BOLA COLLIDER
-const bolaBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(0,bola.children[0].position.y,0))
-bola.updateMatrixWorld(true) // ensure world matrix is up to date
-const bolaMesh = bola.children[0] as THREE.Mesh
-const bolapoints = new Float32Array(bolaMesh.geometry.attributes.position.array)
-const bolaindices = new Uint32Array((bolaMesh.geometry.index as THREE.BufferAttribute).array)
-const bolaShape = (RAPIER.ColliderDesc.trimesh(new Float32Array(bolapoints),new Uint32Array(bolaindices))as RAPIER.ColliderDesc).setMass(12).setFriction(0)
-world.createCollider(bolaShape,bolaBody)
-//#endregion
-
-
-
-
-
-
-// #region CACHARRO COLLIDER
-const cacharroBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed())
-cacharro.updateMatrixWorld(true) // ensure world matrix is up to date
-
-//metal
-const cacharroMesh = cacharro.children[0].children[0] as THREE.Mesh
-const points = new Float32Array(cacharroMesh.geometry.attributes.position.array)
-const indices = new Uint32Array((cacharroMesh.geometry.index as THREE.BufferAttribute).array)
-const cacharroShape = (RAPIER.ColliderDesc.trimesh(new Float32Array(points),new Uint32Array(indices))as RAPIER.ColliderDesc).setMass(12)
-world.createCollider(cacharroShape,cacharroBody)
-
-//non metal
-const cacharroMesh1 = cacharro.children[0].children[1] as THREE.Mesh
-const points1 = new Float32Array(cacharroMesh1.geometry.attributes.position.array)
-const indices1 = new Uint32Array((cacharroMesh1.geometry.index as THREE.BufferAttribute).array)
-const cacharroShape1 = (RAPIER.ColliderDesc.trimesh(new Float32Array(points1),new Uint32Array(indices1))as RAPIER.ColliderDesc).setMass(12).setFriction(0)
-world.createCollider(cacharroShape1,cacharroBody)
-
-// #endregion
-
-
-
-// #region MANGO COLLIDER
-//MUST ADD A JOINT BETWEEN cacharroMesh and cacharroSHape1(metal) SO GRAVITY WONT PULL DOWN WHEN TOUCHED
-const mangoBody = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 1.22, mango.children[0].position.z ).setCanSleep(true))
-mango.updateMatrixWorld(true)
-const mangoMesh = mango.children[0] as THREE.Mesh
-mangoMesh.position.z = 0
-mangoMesh.rotation.z-= Math.PI/2
-const mangoPoints = new Float32Array(mangoMesh.geometry.attributes.position.array)
-const mangoindices = new Uint32Array((mangoMesh.geometry.index as THREE.BufferAttribute).array)
-const mangoShape = (RAPIER.ColliderDesc.trimesh(new Float32Array(mangoPoints),new Uint32Array(mangoindices))as RAPIER.ColliderDesc).setMass(0)
-world.createCollider(mangoShape,mangoBody)
-// dynamicBodies.push([mango, mangoBody])
-// #endregion
-
-
 
 // #region FLOOR
 const floorSize = {x:10, z:10}
@@ -309,40 +195,14 @@ const floorMaterial = new THREE.MeshPhysicalMaterial({
 const floor = new THREE.Mesh(new THREE.PlaneGeometry(floorSize.x,floorSize.z), floorMaterial)
 floor.rotateX(-Math.PI/2)
 floor.receiveShadow = true
-// scene.add(floor)
+scene.add(floor)
 //FLOOR COLLIDER
 const floorBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(0, -0.0999, 0))
 const floorShape = RAPIER.ColliderDesc.cuboid(floorSize.x/2, 0.1, floorSize.z/2)
-// world.createCollider(floorShape, floorBody)
+world.createCollider(floorShape, floorBody)
 // #endregion FLOOR
 
 
-
-
-//#region PLATAFORMAS COLLIDER
-plataformas.forEach(plataforma=>{
-  
-  const plataformaQuaternion = new THREE.Quaternion().setFromEuler(plataforma.rotation);
-  const plataformaBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed()
-    .setTranslation(plataforma.position.x, plataforma.position.y, plataforma.position.z)
-    .setRotation({
-      x: plataformaQuaternion.x,
-      y: plataformaQuaternion.y,
-      z: plataformaQuaternion.z,
-      w: plataformaQuaternion.w
-    })
-  )
-  
-  plataforma.updateMatrixWorld(true)
-  const plataformaMesh = plataforma as THREE.Mesh
-  const points = new Float32Array(plataformaMesh.geometry.attributes.position.array)
-  const indices = new Uint32Array((plataformaMesh.geometry.index as THREE.BufferAttribute).array)
-  const plataformaShape = (RAPIER.ColliderDesc.trimesh(new Float32Array(points),new Uint32Array(indices))as RAPIER.ColliderDesc).setMass(120)
-  // world.createCollider(plataformaShape,plataformaBody)
-  
-  // scene.add(plataforma)
-})
-//#endregion
 
 
 
@@ -370,34 +230,11 @@ dynamicBodies.push([coin, coinBody])
 
 
 
-//BALLZ
-// #region BALLZ
-const ballRadius = 0.09
-const scale = 3*ballRadius
-const angleStep = Math.PI/3
-
-for(let theta=Math.PI/3; theta<2*Math.PI; theta= theta+angleStep){
-  for(let phi=0; phi<2*Math.PI; phi= phi+angleStep){
-    const position = new THREE.Vector3(
-      scale* Math.cos(theta)*Math.sin(phi),
-      2+scale*Math.sin(theta)*Math.sin(phi),
-      scale* Math.cos(theta),
-    )
-    const bolaMaterial  = (bola.children[0] as THREE.Mesh).material as THREE.MeshPhysicalMaterial
-    let material = bolaMaterial.clone()
-    material.roughness = Math.random()*0.6+0.1
-    // TODO: probably collider sometimes fail because it should be slightly bigger than the mesh
-    // let ball = await Ballz.addNewBall(scene,world,ballRadius,position,undefined, material)
-    // dynamicBodies.push(ball)
-  }
-}
-// #endregion BALLZ
-
 
 
 
 // #region CONTROLS
-const moveSpeed = 15  
+const moveSpeed = 2 
 const moveState = {
     forward: false,
     backward: false,
@@ -467,31 +304,6 @@ document.addEventListener('keyup', (event) => {
 })
 
 
-// #region MANGO CONTROLS
-const dragHandleControls = new DragControls( [mango], camera, renderer.domElement );
-dragHandleControls.mode = 'rotate'
-dragHandleControls.rotateSpeed = 0.5
-
-dragHandleControls.addEventListener( 'dragstart', function ( event ) {
-  console.log(event)
-})
-
-dragHandleControls.addEventListener( 'drag', function ( event ) {
-	console.log(event.object.rotation.z*2*Math.PI)
-  event.object.rotation.x = 0
-  event.object.rotation.y= 0
-  event.object.rotation.z -= (Math.abs(mouseMovement.x^2) + Math.abs(mouseMovement.y^2))/200
-  dynamicBodies[0][1].setRotation({x:0,y:0,z:mango.quaternion.z,w:mango.quaternion.w},true)
-
-    //need to detect if mouse is left or right to the rotation Z axis, and change the sign of each X, Y contribution
-  
-});
-dragHandleControls.addEventListener( 'dragend', function (  ) {
-  dynamicBodies[0][1].setTranslation(new RAPIER.Vector3(0, 1.22, 0.2998),true) 
-  dynamicBodies[0][1].setRotation({x:mango.quaternion.x,y:mango.quaternion.y,z:mango.quaternion.z,w:mango.quaternion.w},true)
-})
-// #endregion MANGO CONTROLS
-
 
 
 
@@ -529,10 +341,6 @@ let balls:any = []
 //#region SHOOT CONTROLS
 window.addEventListener('mousedown', async (event:any) => {
   if(event.button == 0){
-    const bolaMaterial  = (bola.children[0] as THREE.Mesh).material as THREE.MeshPhysicalMaterial
-    let material = bolaMaterial.clone()
-    material.roughness = Math.random()*0.6+0.1
-    
     const mouse = new THREE.Vector2(
       (event.clientX / window.innerWidth) * 2 - 1,
       -(event.clientY / window.innerHeight) * 2 + 1
@@ -611,8 +419,8 @@ function animate() {
   
   jumpState.velocity -= jumpState.gravity * delta
   camera.position.y += jumpState.velocity * delta
-  if (camera.position.y <= 1) { 
-      camera.position.y = 1
+  if (camera.position.y <= playerHeight) { 
+      camera.position.y = playerHeight
       if (!jumpState.isGrounded) {
           jumpState.isGrounded = true
           jumpState.jumpCount = 0 
