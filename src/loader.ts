@@ -123,7 +123,207 @@ async function loadTexture(name:any, ext:any){
     return texture;
 }
 
+interface RugShaderConfig {
+    threadWidth: number;
+    threadHeight: number;
+    spacing: number;
+}
+
+async function loadElementsAsShader(data: any, scene: THREE.Scene, config: RugShaderConfig = {
+    threadWidth: 0.015,
+    threadHeight: 0.02,
+    spacing: 0.001
+    }) {
+    const cylinderGeometry = new THREE.CylinderGeometry(
+        config.threadWidth/2,
+        config.threadWidth/2,
+        config.threadHeight,
+        6,
+        1,
+        false
+    );
+    const instancedGeometry = new THREE.InstancedBufferGeometry();
+    instancedGeometry.copy(cylinderGeometry as any);
+    const count = data.length;
+
+    const positions = new Float32Array(count * 3); // X, Y, Z para cada instancia
+    for (let i = 0; i < count; i++) {
+        positions[i * 3 + 0] = data[i].coords[0];
+        positions[i * 3 + 1] = data[i].coords[1];
+        positions[i * 3 + 2] = data[i].coords[2];
+    }
+
+    const instancePosition = new THREE.InstancedBufferAttribute(positions, 3);
+    instancedGeometry.setAttribute('instancePosition', instancePosition);
+
+        // Shader personalizado para usar el atributo `instancePosition`
+        const vertexShader = `
+        attribute vec3 instancePosition;
+        varying vec2 vUv;
+  
+        void main() {
+          vec3 transformed = position + instancePosition; // Aplica la posición a cada instancia
+          vUv = uv; // Pasa las coordenadas UV al fragment shader
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(transformed, 1.0);
+        }
+      `;
+  
+      const fragmentShader = `
+        uniform sampler2D uTexture;
+        varying vec2 vUv;
+  
+        void main() {
+          gl_FragColor = texture2D(uTexture, vUv); // Aplica la textura usando las coordenadas UV
+        }
+      `;
+
+      const texture = await loadTexture("moon", 'jpg');
+  
+      // Material con los shaders personalizados
+      const material = new THREE.ShaderMaterial({
+        uniforms: {
+            uTexture: { value: texture } // Pasa la textura como uniform al shader
+        },
+        vertexShader,
+        fragmentShader
+      });
+
+    const mesh = new THREE.InstancedMesh(instancedGeometry, material, count);
+    mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    scene.add(mesh);
+    return {mesh: mesh, positions: positions, instancePosition: instancePosition, newPosition: JSON.parse(JSON.stringify(positions))};
+}
+
+async function loadRugWithShader(scene: THREE.Scene, imagePath: string, config: RugShaderConfig = {
+    threadWidth: 0.015,
+    threadHeight: 0.02,
+    spacing: 0.001
+}, downsample: number = 1): Promise<THREE.Object3D> {
+    return new Promise((resolve) => {
+        const imageLoader = new THREE.ImageLoader();
+        imageLoader.load(imagePath, (image) => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d')!;
+            canvas.width = image.width;
+            canvas.height = image.height;
+            ctx.drawImage(image, 0, 0);
+            const imageData = ctx.getImageData(0, 0, image.width, image.height);
+
+            const threads = new THREE.Group();
+            
+            // Calculate total rug size
+            const rugWidth = config.spacing * image.width;
+            const rugHeight = config.spacing * image.height;
+            
+            // Center offset
+            const offsetX = -rugWidth / 2;
+            const offsetZ = -rugHeight / 2;
+
+            // Create base cylinder geometry
+            const cylinderGeometry = new THREE.CylinderGeometry(
+                config.threadWidth/2,
+                config.threadWidth/2,
+                config.threadHeight,
+                6,
+                1,
+                false
+            );
+
+            // Thread shader
+            const threadMaterial = new THREE.ShaderMaterial({
+                uniforms: {
+                    color: { value: new THREE.Vector3() },
+                    roughness: { value: 0.2 },
+                    metalness: { value: 0.0 },
+                    clearcoat: { value: 0.1 }
+                },
+                vertexShader: `
+                    varying vec3 vNormal;
+                    varying vec3 vViewPosition;
+                    
+                    void main() {
+                        vNormal = normalMatrix * normal;
+                        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                        vViewPosition = -mvPosition.xyz;
+                        gl_Position = projectionMatrix * mvPosition;
+                    }
+                `,
+                fragmentShader: `
+                    uniform vec3 color;
+                    uniform float roughness;
+                    uniform float metalness;
+                    uniform float clearcoat;
+                    
+                    varying vec3 vNormal;
+                    varying vec3 vViewPosition;
+                    
+                    void main() {
+                        vec3 normal = normalize(vNormal);
+                        vec3 viewDir = normalize(vViewPosition);
+                        vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
+                        
+                        float diff = max(dot(normal, lightDir), 0.0);
+                        vec3 ambient = color * 0.3;
+                        vec3 diffuse = color * diff;
+                        
+                        vec3 h = normalize(lightDir + viewDir);
+                        float specular = pow(max(dot(normal, h), 0.0), 32.0) * (1.0 - roughness);
+                        
+                        vec3 finalColor = mix(ambient, diffuse, 0.7) + specular * clearcoat;
+                        
+                        gl_FragColor = vec4(finalColor, 1.0);
+                    }
+                `,
+                side: THREE.DoubleSide
+            });
+
+            // Create individual cylinders
+            for(let x = 0; x < image.width; x += downsample) {
+                for(let z = 0; z < image.height; z += downsample) {
+                    const i = (z * image.width + x) * 4;
+                    const r = imageData.data[i];
+                    const g = imageData.data[i + 1];
+                    const b = imageData.data[i + 2];
+                    const a = imageData.data[i + 3];
+
+                    if(a > 0) {
+                        // Create new material instance for this thread
+                        const material = threadMaterial.clone();
+                        material.uniforms.color.value.set(r/255, g/255, b/255);
+                        
+                        const thread = new THREE.Mesh(cylinderGeometry, material);
+                        thread.castShadow = true;
+                        thread.receiveShadow = true;
+                        
+                        // Position thread
+                        thread.position.set(
+                            offsetX + x * config.spacing,
+                            config.threadHeight/2,
+                            offsetZ + z * config.spacing
+                        );
+
+                        // Add slight random rotation
+                        thread.rotation.set(
+                            (Math.random() - 0.5) * 0.2,
+                            0,
+                            (Math.random() - 0.5) * 0.2
+                        );
+
+                        threads.add(thread);
+                    }
+                }
+            }
+
+            if(scene) scene.add(threads);
+            resolve(threads);
+        });
+    });
+}
+
+
 export {
     loadModel,
     loadImage,
+    loadRugWithShader,
+    type RugShaderConfig
 }
