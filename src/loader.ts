@@ -147,67 +147,81 @@ async function loadElementsAsShader(data: any, scene: THREE.Scene, config: RugSh
     const count = data.length;
 
     const positions = new Float32Array(count * 3); // X, Y, Z para cada instancia
+    const colors = new Float32Array(count * 3);
+
     for (let i = 0; i < count; i++) {
         positions[i * 3 + 0] = data[i].x;
         positions[i * 3 + 1] = data[i].y;
         positions[i * 3 + 2] = data[i].z;
+
+        const cylinder = data[i];
+        // if (cylinder.material instanceof THREE.MeshPhysicalMaterial) {
+        //     debugger
+            colors[i * 3 + 0] = cylinder.material.color.r;
+            colors[i * 3 + 1] = cylinder.material.color.g;
+            colors[i * 3 + 2] = cylinder.material.color.b;
+        // }
     }
 
     const instancePosition = new THREE.InstancedBufferAttribute(positions, 3);
     instancedGeometry.setAttribute('instancePosition', instancePosition);
 
-        // Shader personalizado para usar el atributo `instancePosition`
-        const vertexShader = `
+    // Add the colors as an instance attribute
+    const instanceColor = new THREE.InstancedBufferAttribute(colors, 3);
+    instancedGeometry.setAttribute('instanceColor', instanceColor);
+        
+    // Shader personalizado para usar el atributo `instancePosition`
+    const vertexShader = `
         attribute vec3 instancePosition;
+        attribute vec3 instanceColor;  // Add this
         varying vec2 vUv;
         varying vec3 vNormal;
         varying vec3 vViewPosition;
+        varying vec3 vColor;          // Add this
+
         void main() {
-          vec3 transformed = position + instancePosition; // Aplica la posición a cada instancia
-          vUv = uv; // Pasa las coordenadas UV al fragment shader
-          vNormal = normalMatrix * normal;
-            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+            vec3 transformed = position + instancePosition;
+            vUv = uv;
+            vNormal = normalMatrix * normal;
+            vColor = instanceColor;    // Pass color to fragment shader
+            vec4 mvPosition = modelViewMatrix * vec4(transformed, 1.0);
             vViewPosition = -mvPosition.xyz;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(transformed, 1.0);
+            gl_Position = projectionMatrix * mvPosition;
         }
-      `;
-  
-      const fragmentShader = `
-            uniform vec3 color;
-            uniform float roughness;
-            uniform float metalness;
-            uniform float clearcoat;
+    `;  
+    // Update the fragment shader to use the passed color:
+    const fragmentShader = `
+        varying vec3 vNormal;
+        varying vec3 vViewPosition;
+        varying vec3 vColor;          // Add this
 
-            varying vec3 vNormal;
-            varying vec3 vViewPosition;
+        void main() {
+            vec3 normal = normalize(vNormal);
+            vec3 viewDir = normalize(vViewPosition);
+            vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
 
-            void main() {
-                vec3 normal = normalize(vNormal);
-                vec3 viewDir = normalize(vViewPosition);
-                vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
+            float diff = max(dot(normal, lightDir), 0.0);
+            vec3 ambient = vColor * 0.3;        // Use vColor instead of uniform
+            vec3 diffuse = vColor * diff;       // Use vColor instead of uniform
 
-                float diff = max(dot(normal, lightDir), 0.0);
-                vec3 ambient = color * 0.3;
-                vec3 diffuse = color * diff;
+            vec3 h = normalize(lightDir + viewDir);
+            float specular = pow(max(dot(normal, h), 0.0), 32.0) * 0.2;
 
-                vec3 h = normalize(lightDir + viewDir);
-                float specular = pow(max(dot(normal, h), 0.0), 32.0) * (1.0 - roughness);
-
-                vec3 finalColor = mix(ambient, diffuse, 0.7) + specular * clearcoat;
-
-                gl_FragColor = vec4(finalColor, 1.0);
-            }
-        `;
+            vec3 finalColor = mix(ambient, diffuse, 0.7) + specular;
+            gl_FragColor = vec4(finalColor, 1.0);
+        }
+    `;
 
       const texture = await loadTexture("moon", 'jpg');
   
       // Material con los shaders personalizados
       const material = new THREE.ShaderMaterial({
-        uniforms: {
-            uTexture: { value: texture } // Pasa la textura como uniform al shader
-        },
+        // uniforms: {
+        //     uTexture: { value: texture } // Pasa la textura como uniform al shader
+        // },
         vertexShader,
-        fragmentShader
+        fragmentShader,
+        side: THREE.DoubleSide
       });
 
       
