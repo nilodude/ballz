@@ -31,31 +31,29 @@ hdriLoader.load('./space.hdr', function (texture) {
 const rapierDebugRenderer = new RapierDebugRenderer(scene, world)
 // Loader.loadSun(scene)
 
-const playerHeight = 0.2
+const playerHeight = 1.2
 
 
 //#region LOAD MODELS
 
 let balon = await Loader.loadModel(scene, 'nilobasketball', false)
-// const imagen = await Loader.loadImage(scene, 'f3.jpg',true,20)
-
-
-
-const rugs = await Loader.loadRugWithShader(scene, 'f3.jpg', false, {
-    threadWidth: 0.015,
-    threadHeight: 0.05,
-    spacing: 0.001
-}, 20);
+const threadWidth = 0.01
+const threadConfig = {
+    threadWidth: 0.01,
+    threadHeight: 0.15,
+    spacing: threadWidth
+}
+const rugs = await Loader.loadRugWithShader(scene, 'f3.jpg', false, threadConfig, 2);
 
 console.log(rugs)
 
-await Loader.loadElementsAsShader(rugs.children, scene)
+await Loader.loadElementsAsShader(rugs.children, scene,threadConfig)
 //#endregion LOAD MODELS
 
 
 
 // #region CAMERA & RENDERER
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000)
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.001, 2000)
 
 camera.position.x = 0.5
 camera.position.y = playerHeight

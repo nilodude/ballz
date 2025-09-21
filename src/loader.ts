@@ -129,16 +129,12 @@ interface RugShaderConfig {
     spacing: number;
 }
 
-async function loadElementsAsShader(data: any, scene: THREE.Scene, config: RugShaderConfig = {
-    threadWidth: 0.015,
-    threadHeight: 0.02,
-    spacing: 0.001
-    }) {
+async function loadElementsAsShader(data: any, scene: THREE.Scene, config: RugShaderConfig) {
     const cylinderGeometry = new THREE.CylinderGeometry(
         config.threadWidth/2,
         config.threadWidth/2,
         config.threadHeight,
-        6,
+        11,
         1,
         false
     );
@@ -151,8 +147,8 @@ async function loadElementsAsShader(data: any, scene: THREE.Scene, config: RugSh
 
     for (let i = 0; i < count; i++) {
         positions[i * 3 + 0] = data[i].position.x;
-        positions[i * 3 + 1] = data[i].position.y;
-        positions[i * 3 + 2] = data[i].position.z;
+        positions[i * 3 + 1] = data[i].position.y+ (Math.random()/8);
+        positions[i * 3 + 2] = data[i].position.z ;
 
         const cylinder = data[i];
         if (cylinder.material instanceof THREE.ShaderMaterial && cylinder.material.uniforms.color) {
@@ -237,11 +233,7 @@ async function loadElementsAsShader(data: any, scene: THREE.Scene, config: RugSh
     return {mesh: mesh, positions: positions, instancePosition: instancePosition, newPosition: JSON.parse(JSON.stringify(positions))};
 }
 
-async function loadRugWithShader(scene: THREE.Scene, imagePath: string,add:boolean = false, config: RugShaderConfig = {
-    threadWidth: 0.015,
-    threadHeight: 0.02,
-    spacing: 0.001
-}, downsample: number = 1): Promise<THREE.Object3D> {
+async function loadRugWithShader(scene: THREE.Scene, imagePath: string,add:boolean = false, config: RugShaderConfig , downsample: number = 1): Promise<THREE.Object3D> {
     return new Promise((resolve) => {
         const imageLoader = new THREE.ImageLoader();
         imageLoader.load(imagePath, (image) => {
@@ -255,8 +247,8 @@ async function loadRugWithShader(scene: THREE.Scene, imagePath: string,add:boole
             const threads = new THREE.Group();
             
             // Calculate total rug size
-            const rugWidth = config.spacing * image.width;
-            const rugHeight = config.spacing * image.height;
+            const rugWidth = config.spacing/downsample * image.width;
+            const rugHeight = config.spacing/downsample * image.height;
             
             // Center offset
             const offsetX = -rugWidth / 2;
@@ -340,9 +332,9 @@ async function loadRugWithShader(scene: THREE.Scene, imagePath: string,add:boole
                         
                         // Position thread
                         thread.position.set(
-                            offsetX + x * config.spacing,
-                            config.threadHeight/2,
-                            offsetZ + z * config.spacing
+                            offsetX + x * config.threadWidth/downsample,
+                            0.1+ config.threadHeight/2,
+                            offsetZ + z * config.threadWidth/downsample
                         );
 
                         // Add slight random rotation
