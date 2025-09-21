@@ -39,15 +39,11 @@ const playerHeight = 1.5
 let balon = await Loader.loadModel(scene, 'nilobasketball', false)
 const threadWidth = 0.01
 const threadConfig = {
-    threadWidth: 0.01,
+    threadWidth: threadWidth,
     threadHeight: 0.15,
     spacing: threadWidth
 }
-// const rugs = await Loader.loadRugWithShader(scene, 'f3.jpg', false, threadConfig, 2);
 
-// console.log(rugs)
-
-// await Loader.loadElementsAsShader(rugs.children, scene,threadConfig)
 await Loader.loadRugWithInstancedShader(scene, 'f3.jpg', threadConfig, 2)
 
 //#endregion LOAD MODELS
@@ -374,21 +370,23 @@ window.addEventListener('mousedown', async (event:any) => {
     newbalon[1].applyImpulse(new RAPIER.Vector3(force*shootingDirection.x, force*shootingDirection.y, force*shootingDirection.z),true)
     const rightVector = new THREE.Vector3()
     rightVector.crossVectors(shootingDirection, new THREE.Vector3(0, 1, 0)).normalize()
-    const spinSpeed = 15 
-    const randomVariation = 0.2 // 20% variation in spin
+    const spinSpeed = 45 
+    const randomVariation = 0.5 // 20% variation in spin
     const randomSpin = spinSpeed * (1 + (Math.random() - 0.5) * randomVariation)
     newbalon[1].setAngvel(new RAPIER.Vector3(
         rightVector.x * randomSpin,
         rightVector.y * randomSpin,
         rightVector.z * randomSpin
     ), true)
-
-    balls.forEach((ball:any)=>{
-      scene.remove(ball[0])
-      scene.remove(ball[1])
-      world.removeCollider(ball[2], true)
-    })
-    dynamicBodies = []
+    
+    if(balls.length > 2){
+      balls.slice(0,balls.length-2).forEach((ball:any)=>{
+        scene.remove(ball[0])
+        scene.remove(ball[1])
+        world.removeCollider(ball[2], true)
+      })
+      dynamicBodies.slice(0,1).forEach(d=>d.slice(0,d.length-2)) 
+    }
     dynamicBodies.push([newbalon[0], newbalon[1]])
     balls.push(newbalon)
   }
