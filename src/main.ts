@@ -39,11 +39,17 @@ const playerHeight = 0.2
 let balon = await Loader.loadModel(scene, 'nilobasketball', false)
 // const imagen = await Loader.loadImage(scene, 'f3.jpg',true,20)
 
-const rug = await Loader.loadRugWithShader(scene, 'f3.jpg', {
+
+
+const rugs = await Loader.loadRugWithShader(scene, 'f3.jpg', false, {
     threadWidth: 0.015,
     threadHeight: 0.05,
     spacing: 0.001
 }, 20);
+
+console.log(rugs)
+
+await Loader.loadElementsAsShader(rugs.children.map(c=>c.position), scene)
 //#endregion LOAD MODELS
 
 

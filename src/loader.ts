@@ -148,9 +148,9 @@ async function loadElementsAsShader(data: any, scene: THREE.Scene, config: RugSh
 
     const positions = new Float32Array(count * 3); // X, Y, Z para cada instancia
     for (let i = 0; i < count; i++) {
-        positions[i * 3 + 0] = data[i].coords[0];
-        positions[i * 3 + 1] = data[i].coords[1];
-        positions[i * 3 + 2] = data[i].coords[2];
+        positions[i * 3 + 0] = data[i].x;
+        positions[i * 3 + 1] = data[i].y;
+        positions[i * 3 + 2] = data[i].z;
     }
 
     const instancePosition = new THREE.InstancedBufferAttribute(positions, 3);
@@ -160,22 +160,44 @@ async function loadElementsAsShader(data: any, scene: THREE.Scene, config: RugSh
         const vertexShader = `
         attribute vec3 instancePosition;
         varying vec2 vUv;
-  
+        varying vec3 vNormal;
+        varying vec3 vViewPosition;
         void main() {
           vec3 transformed = position + instancePosition; // Aplica la posición a cada instancia
           vUv = uv; // Pasa las coordenadas UV al fragment shader
+          vNormal = normalMatrix * normal;
+            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+            vViewPosition = -mvPosition.xyz;
           gl_Position = projectionMatrix * modelViewMatrix * vec4(transformed, 1.0);
         }
       `;
   
       const fragmentShader = `
-        uniform sampler2D uTexture;
-        varying vec2 vUv;
-  
-        void main() {
-          gl_FragColor = texture2D(uTexture, vUv); // Aplica la textura usando las coordenadas UV
-        }
-      `;
+            uniform vec3 color;
+            uniform float roughness;
+            uniform float metalness;
+            uniform float clearcoat;
+
+            varying vec3 vNormal;
+            varying vec3 vViewPosition;
+
+            void main() {
+                vec3 normal = normalize(vNormal);
+                vec3 viewDir = normalize(vViewPosition);
+                vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
+
+                float diff = max(dot(normal, lightDir), 0.0);
+                vec3 ambient = color * 0.3;
+                vec3 diffuse = color * diff;
+
+                vec3 h = normalize(lightDir + viewDir);
+                float specular = pow(max(dot(normal, h), 0.0), 32.0) * (1.0 - roughness);
+
+                vec3 finalColor = mix(ambient, diffuse, 0.7) + specular * clearcoat;
+
+                gl_FragColor = vec4(finalColor, 1.0);
+            }
+        `;
 
       const texture = await loadTexture("moon", 'jpg');
   
@@ -188,13 +210,16 @@ async function loadElementsAsShader(data: any, scene: THREE.Scene, config: RugSh
         fragmentShader
       });
 
+      
+           
+
     const mesh = new THREE.InstancedMesh(instancedGeometry, material, count);
     mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     scene.add(mesh);
     return {mesh: mesh, positions: positions, instancePosition: instancePosition, newPosition: JSON.parse(JSON.stringify(positions))};
 }
 
-async function loadRugWithShader(scene: THREE.Scene, imagePath: string, config: RugShaderConfig = {
+async function loadRugWithShader(scene: THREE.Scene, imagePath: string,add:boolean = false, config: RugShaderConfig = {
     threadWidth: 0.015,
     threadHeight: 0.02,
     spacing: 0.001
@@ -314,7 +339,7 @@ async function loadRugWithShader(scene: THREE.Scene, imagePath: string, config: 
                 }
             }
 
-            if(scene) scene.add(threads);
+            if(add) scene.add(threads);
             resolve(threads);
         });
     });
@@ -325,5 +350,6 @@ export {
     loadModel,
     loadImage,
     loadRugWithShader,
+    loadElementsAsShader,
     type RugShaderConfig
 }
