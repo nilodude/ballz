@@ -40,11 +40,11 @@ let balon = await Loader.loadModel(scene, 'nilobasketball', false)
 const threadWidth = 0.01
 const threadConfig = {
     threadWidth: threadWidth,
-    threadHeight: 0.15,
+    threadHeight: 0.05,
     spacing: threadWidth
 }
 
-await Loader.loadRugWithInstancedShader(scene, 'jupiter.jpg', threadConfig, 2)
+let rug = await Loader.loadRugWithInstancedShader(scene, 'venus.jpg', threadConfig,8)
 
 //#endregion LOAD MODELS
 

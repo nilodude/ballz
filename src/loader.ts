@@ -352,12 +352,33 @@ async function loadRugWithShader(scene: THREE.Scene, imagePath: string,add:boole
     });
 }
 
+
+class CustomSinCurve extends THREE.Curve<THREE.Vector3> {
+    scale: any
+	constructor( scale = 1 ) {
+		super();
+		this.scale = scale;
+	}
+
+	getPoint( t:any, optionalTarget = new THREE.Vector3() ) {
+
+		const tx =Math.sin( 2 * Math.PI * t );
+		const ty = t * 3 - 1.5;
+		const tz =  0;
+
+		return optionalTarget.set( tx, ty, tz ).multiplyScalar( this.scale );
+	}
+}
+
+
 async function loadRugWithInstancedShader(
     scene: THREE.Scene, 
     imagePath: string, 
     config: RugShaderConfig,
     downsample: number 
 ): Promise<{mesh: THREE.InstancedMesh, positions: Float32Array, instancePosition: THREE.InstancedBufferAttribute}> {
+    let rawthread = await loadModel(scene, 'thread', false)
+    let thread = rawthread.children[0] as any
     return new Promise((resolve) => {
         const imageLoader = new THREE.ImageLoader();
         imageLoader.load(imagePath, (image) => {
@@ -381,9 +402,27 @@ async function loadRugWithInstancedShader(
                 1,
                 false
             );
+            // const geometry = new THREE.IcosahedronGeometry(config.threadWidth/2,4) //bolita
+            const verticesOfCube = [
+    -1,-1,-1,    1,-1,-1,    1, 1,-1,    -1, 1,-1,
+    -1,-1, 1,    1,-1, 1,    1, 1, 1,    -1, 1, 1,
+];
 
+const indicesOfFaces = [
+    2,1,0,    0,3,2,
+    0,4,7,    7,3,0,
+    0,1,5,    5,4,0,
+    1,2,6,    6,5,1,
+    2,3,7,    7,6,2,
+    4,5,6,    6,7,4
+];
+
+const geometry = new THREE.PolyhedronGeometry( verticesOfCube, indicesOfFaces,0.01, 2 );
+
+
+            
             const instancedGeometry = new THREE.InstancedBufferGeometry();
-            instancedGeometry.copy(cylinderGeometry as any);
+            instancedGeometry.copy(thread.geometry as any);
 
             const count = Math.floor((image.width * image.height) / (downsample * downsample));
             
@@ -441,7 +480,7 @@ async function loadRugWithInstancedShader(
                         vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
                         
                         float diff = max(dot(normal, lightDir), 0.0);
-                        vec3 ambient = vColor * 2.5;
+                        vec3 ambient = vColor * 2.1;
                         vec3 diffuse = vColor * diff;
                         
                         vec3 h = normalize(lightDir + viewDir);
