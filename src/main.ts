@@ -44,7 +44,7 @@ const threadConfig = {
     spacing: threadWidth
 }
 
-await Loader.loadRugWithInstancedShader(scene, 'f3.jpg', threadConfig, 2)
+await Loader.loadRugWithInstancedShader(scene, 'jupiter.jpg', threadConfig, 2)
 
 //#endregion LOAD MODELS
 

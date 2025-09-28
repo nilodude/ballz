@@ -441,11 +441,11 @@ async function loadRugWithInstancedShader(
                         vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
                         
                         float diff = max(dot(normal, lightDir), 0.0);
-                        vec3 ambient = vColor * 0.3;
+                        vec3 ambient = vColor * 2.5;
                         vec3 diffuse = vColor * diff;
                         
                         vec3 h = normalize(lightDir + viewDir);
-                        float specular = pow(max(dot(normal, h), 0.0), 32.0) * 0.2;
+                        float specular = pow(max(dot(normal, h), 0.9), 32.0) * 0.2;
                         
                         vec3 finalColor = mix(ambient, diffuse, 0.7) + specular;
                         gl_FragColor = vec4(finalColor, 1.0);
